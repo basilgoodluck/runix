@@ -1,0 +1,32 @@
+{
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "./dist",
+
+    "module": "esnext",
+    "target": "esnext",
+    "types": ["node"],
+
+    "sourceMap": true,
+    "declaration": true,
+    "declarationMap": true,
+
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["engine/*", "sdk/*", "*"]
+    },
+    "ignoreDeprecations": "6.0",
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+
+    "strict": true,
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "noUncheckedSideEffectImports": true,
+    "moduleDetection": "force",
+    "skipLibCheck": true
+  },
+  "include": ["engine/**/*", "sdk/**/*", "scripts/setup.ts"],
+  "exclude": ["node_modules", "dist"],
+  "moduleResolution": "bundler"
+}

@@ -1,0 +1,38 @@
+// import { generateKeyPairSync } from "crypto";
+// const { privateKey, publicKey } = generateKeyPairSync("ed25519", {
+//   privateKeyEncoding: { type: "pkcs8", format: "der" },
+//   publicKeyEncoding: { type: "spki", format: "der" },
+// });
+// console.log("PRIVATE:", privateKey.toString("base64"));
+// console.log("PUBLIC:", publicKey.toString("base64"));
+
+// import { randomBytes } from "crypto";
+// console.log(randomBytes(32).toString("hex"));
+
+// import { generateEntitySecretCiphertext } from "@circle-fin/developer-controlled-wallets";
+// import dotenv from "dotenv";
+
+// dotenv.config();
+
+// const ciphertext = await generateEntitySecretCiphertext({
+//   apiKey: process.env.CIRCLE_API_KEY!,
+//   entitySecret: process.env.CIRCLE_ENTITY_SECRET!,
+// });
+
+// console.log(ciphertext);
+
+// import { registerEntitySecretCiphertext } from "@circle-fin/developer-controlled-wallets";
+// import { mkdirSync } from "fs";
+// import dotenv from "dotenv";
+
+// dotenv.config();
+
+// mkdirSync("./output", { recursive: true });
+
+// const response = await registerEntitySecretCiphertext({
+//   apiKey: process.env.CIRCLE_API_KEY!,
+//   entitySecret: process.env.CIRCLE_ENTITY_SECRET!,
+//   recoveryFileDownloadPath: "./output/",
+// });
+
+// console.log(response);
