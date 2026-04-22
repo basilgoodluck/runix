@@ -21,7 +21,7 @@ export class RunixClient {
 
   constructor(config: RunixClientConfig) {
     this.apiKey = config.apiKey;
-    this.baseUrl = (config.baseUrl ?? "http://localhost:2345").replace(/\/$/, "");
+    this.baseUrl = (config.baseUrl ?? "https://runix.basilgoodluck.com").replace(/\/$/, "");
     this.timeoutMs = config.timeoutMs ?? 30_000;
   }
 
@@ -97,7 +97,7 @@ export class RunixClient {
 
   static async register(
     options: RegisterOptions,
-    baseUrl: string = "http://localhost:2345"
+    baseUrl: string = "https://runix.basilgoodluck.com"
   ): Promise<AgentRegistration> {
     const res = await fetch(`${baseUrl.replace(/\/$/, "")}/api/agents/register`, {
       method: "POST",
