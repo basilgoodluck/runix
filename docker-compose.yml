@@ -3,7 +3,7 @@ services:
   runix:
     build:
       context: .
-      dockerfile: docker/api/Dockerfile
+      dockerfile: docker/engine/Dockerfile
     container_name: runix
     restart: unless-stopped
     ports:
