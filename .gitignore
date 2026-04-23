@@ -43,3 +43,5 @@ coverage/
 output/
 proposition.md
 plan.md
+
+*.npmrc

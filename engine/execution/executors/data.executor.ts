@@ -4,6 +4,8 @@ import { JobStatus, JobType } from "../types";
 import type { DataJob, ExecutionResult } from "../types";
 import logger from "@/lib/logger";
 
+const MAX_RESPONSE_BYTES = 2 * 1024 * 1024; // 2MB cap on fetched HTML
+
 export class DataExecutor {
   async run(job: DataJob): Promise<ExecutionResult> {
     const start = Date.now();
@@ -13,6 +15,7 @@ export class DataExecutor {
     try {
       const response = await axios.get(job.url, {
         timeout: job.timeoutMs ?? 15_000,
+        maxContentLength: MAX_RESPONSE_BYTES,
         headers: {
           "User-Agent": "Mozilla/5.0 (compatible; Runix/1.0)",
         },
@@ -22,30 +25,28 @@ export class DataExecutor {
 
       if (job.mode === "fetch") {
         return {
-          jobId: job.id,
+          id: job.id,
           type: JobType.DATA,
-          status: JobStatus.SUCCESS,
+          status: JobStatus.DONE,
           output: { raw: html },
           durationMs: Date.now() - start,
         };
       }
 
-      // scrape mode
       if (!job.selector) {
         throw new Error("scrape mode requires a CSS selector");
       }
 
       const $ = cheerio.load(html);
       const results: string[] = [];
-
       $(job.selector).each((_, el) => {
         results.push($(el).text().trim());
       });
 
       return {
-        jobId: job.id,
+        id: job.id,
         type: JobType.DATA,
-        status: JobStatus.SUCCESS,
+        status: JobStatus.DONE,
         output: { selector: job.selector, results },
         durationMs: Date.now() - start,
       };
@@ -53,7 +54,7 @@ export class DataExecutor {
       logger.error(`DataExecutor failed [${job.id}]: ${err.message}`);
 
       return {
-        jobId: job.id,
+        id: job.id,
         type: JobType.DATA,
         status: JobStatus.FAILED,
         error: err.message,

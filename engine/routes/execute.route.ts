@@ -47,16 +47,16 @@ executeRouter.post("/execute", async (req: Request, res: Response, next: NextFun
 // ── Streaming execution (compute only, SSE) ───────────────────────────────────
 executeRouter.post("/execute/stream", async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { language, code, stdin, timeoutMs } = req.body;
+    const { runtime, code, stdin, timeoutMs } = req.body;
 
-    if (!language || !code) {
-      throw new ValidationError("language and code are required for streaming execution");
+    if (!runtime || !code) {
+      throw new ValidationError("runtime and code are required for streaming execution");
     }
 
     const job: ComputeJob = {
       id: generateJobId(),
       type: JobType.COMPUTE,
-      language,
+      runtime,
       code,
       timeoutMs: clamp(
         timeoutMs ?? config.execution.defaultTimeoutMs,
@@ -66,7 +66,7 @@ executeRouter.post("/execute/stream", async (req: Request, res: Response, next: 
       ...(stdin !== undefined ? { stdin } : {}),
     };
 
-    logger.info(`Streaming job [${job.id}] lang=${language}`);
+    logger.info(`Streaming job [${job.id}] runtime=${runtime}`);
 
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache");

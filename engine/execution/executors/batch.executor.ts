@@ -12,17 +12,16 @@ export class BatchExecutor {
 
     if (job.jobs.length === 0) {
       return {
-        jobId: job.id,
+        id: job.id,
         type: JobType.BATCH,
-        status: JobStatus.SUCCESS,
+        status: JobStatus.DONE,
         results: [],
-        summary: { total: 0, succeeded: 0, failed: 0 },
+        summary: { total: 0, succeeded: 0, failed: 0, totalCostUsd: 0 },
         durationMs: Date.now() - start,
       };
     }
 
     try {
-      // Stamp each child with a unique id if not already set
       const children = job.jobs.map((child) => ({
         ...child,
         id: child.id ?? generateJobId(),
@@ -36,19 +35,20 @@ export class BatchExecutor {
         results = await this.runAll(children);
       }
 
-      const succeeded = results.filter((r) => r.status === JobStatus.SUCCESS).length;
+      const succeeded = results.filter((r) => r.status === JobStatus.DONE).length;
       const failed = results.length - succeeded;
-      const overallStatus = failed === 0 ? JobStatus.SUCCESS : JobStatus.FAILED;
+      const totalCostUsd = results.reduce((sum, r) => sum + (r.costUsd ?? 0), 0);
 
       return {
-        jobId: job.id,
+        id: job.id,
         type: JobType.BATCH,
-        status: overallStatus,
+        status: failed === 0 ? JobStatus.DONE : JobStatus.FAILED,
         results,
         summary: {
           total: results.length,
           succeeded,
           failed,
+          totalCostUsd: parseFloat(totalCostUsd.toFixed(8)),
         },
         durationMs: Date.now() - start,
       };
@@ -56,7 +56,7 @@ export class BatchExecutor {
       logger.error(`BatchExecutor failed [${job.id}]: ${err.message}`);
 
       return {
-        jobId: job.id,
+        id: job.id,
         type: JobType.BATCH,
         status: JobStatus.FAILED,
         error: err.message,
@@ -65,19 +65,13 @@ export class BatchExecutor {
     }
   }
 
-  // Run all jobs in parallel — collect all results regardless of failures
-  private async runAll(
-    children: BatchJob["jobs"]
-  ): Promise<ExecutionResult[]> {
+  private async runAll(children: BatchJob["jobs"]): Promise<ExecutionResult[]> {
     const settled = await Promise.allSettled(children.map((child) => routeJob(child)));
 
     return settled.map((result, i) => {
-      if (result.status === "fulfilled") {
-        return result.value;
-      }
-      // Job threw — wrap as a failed ExecutionResult
+      if (result.status === "fulfilled") return result.value;
       return {
-        jobId: children[i]!.id,
+        id: children[i]!.id,
         type: children[i]!.type as any,
         status: JobStatus.FAILED,
         error: result.reason?.message ?? "Unknown error",
@@ -86,11 +80,7 @@ export class BatchExecutor {
     });
   }
 
-  // Run all jobs in parallel but abort remaining on first failure
-  private async runFailFast(
-    children: BatchJob["jobs"],
-    batchId: string
-  ): Promise<ExecutionResult[]> {
+  private async runFailFast(children: BatchJob["jobs"], batchId: string): Promise<ExecutionResult[]> {
     return new Promise((resolve, reject) => {
       const results: ExecutionResult[] = new Array(children.length);
       let completed = 0;
@@ -100,26 +90,17 @@ export class BatchExecutor {
         routeJob(child)
           .then((result) => {
             if (aborted) return;
-
             results[i] = result;
             completed++;
-
             if (result.status === JobStatus.FAILED) {
               aborted = true;
               logger.warn(`BatchExecutor [${batchId}]: fail-fast triggered by child [${child.id}]`);
-              reject(new Error(`Batch aborted — child job [${child.id}] failed: ${result.error}`));
+              reject(new Error(`Batch aborted — child [${child.id}] failed: ${result.error}`));
               return;
             }
-
-            if (completed === children.length) {
-              resolve(results as ExecutionResult[]);
-            }
+            if (completed === children.length) resolve(results as ExecutionResult[]);
           })
-          .catch((err) => {
-            if (aborted) return;
-            aborted = true;
-            reject(err);
-          });
+          .catch((err) => { if (!aborted) { aborted = true; reject(err); } });
       });
     });
   }

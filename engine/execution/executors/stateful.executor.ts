@@ -18,7 +18,6 @@ export class StatefulExecutor {
           output = raw ? JSON.parse(raw) : null;
           break;
         }
-
         case "set": {
           const serialized = JSON.stringify(job.value ?? null);
           if (job.ttl) {
@@ -29,27 +28,24 @@ export class StatefulExecutor {
           output = { written: true, key: job.key, ttl: job.ttl ?? null };
           break;
         }
-
         case "delete": {
           await store.del(job.key);
           output = { deleted: true, key: job.key };
           break;
         }
-
         case "exists": {
           const count = await store.exists(job.key);
           output = { exists: count > 0, key: job.key };
           break;
         }
-
         default:
           throw new Error(`Unknown stateful op: ${(job as StatefulJob).op}`);
       }
 
       return {
-        jobId: job.id,
+        id: job.id,
         type: JobType.STATEFUL,
-        status: JobStatus.SUCCESS,
+        status: JobStatus.DONE,
         output,
         durationMs: Date.now() - start,
       };
@@ -57,7 +53,7 @@ export class StatefulExecutor {
       logger.error(`StatefulExecutor failed [${job.id}]: ${err.message}`);
 
       return {
-        jobId: job.id,
+        id: job.id,
         type: JobType.STATEFUL,
         status: JobStatus.FAILED,
         error: err.message,

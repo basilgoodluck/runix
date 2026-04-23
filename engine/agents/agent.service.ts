@@ -51,7 +51,7 @@ export async function registerAgent(metadataUri: string): Promise<AgentInfo> {
 
   const agent: AgentInfo = {
     agentId,
-    onchainAgentId: onchainAgentId ?? undefined,
+    ...(onchainAgentId ? { onchainAgentId } : {}),
     txHash,
     walletId: wallet.id,
     walletAddress: wallet.address,
