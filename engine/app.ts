@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
 import express from "express";
 import helmet from "helmet";
+import cors from "cors";
 import rateLimit from "express-rate-limit";
 import { randomUUID } from "crypto";
 import { executeRouter } from "./routes/execute.route";
@@ -17,6 +18,14 @@ const app = express();
 app.set("trust proxy", 1);
 
 app.use(helmet());
+
+app.use(cors({
+  origin: [
+    process.env.FRONTEND_URL!,
+    "http://localhost:3000",
+  ],
+  credentials: true,
+}));
 
 app.use((req: Request, _res: Response, next: NextFunction) => {
   (req as any).id = (req.headers["x-request-id"] as string) ?? randomUUID();
