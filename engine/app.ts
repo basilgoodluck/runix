@@ -19,18 +19,16 @@ const app = express();
 
 app.set("trust proxy", 1);
 
-// ─────────────────────────────────────────────────────────────
-// Security + middleware
-// ─────────────────────────────────────────────────────────────
+// ─────────────────────────────
+// Core middleware
+// ─────────────────────────────
 
 app.use(helmet());
 
-app.use(
-  cors({
-    origin: [config.frontendUrl, "http://localhost:3000"],
-    credentials: true,
-  })
-);
+app.use(cors({
+  origin: [config.frontendUrl, "http://localhost:3000"],
+  credentials: true,
+}));
 
 app.use((req: Request, _res: Response, next: NextFunction) => {
   (req as any).id =
@@ -40,103 +38,99 @@ app.use((req: Request, _res: Response, next: NextFunction) => {
 
 app.use(express.json({ limit: "64kb" }));
 
-// ─────────────────────────────────────────────────────────────
-// Rate limits
-// ─────────────────────────────────────────────────────────────
+// ─────────────────────────────
+// Rate limit
+// ─────────────────────────────
 
-const globalLimiter = rateLimit({
+app.use(rateLimit({
   windowMs: 60 * 1000,
   max: 60,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { error: "Too many requests, slow down" },
-});
+}));
 
-const executionLimiter = rateLimit({
+app.use("/api/execute", rateLimit({
   windowMs: 60 * 1000,
   max: 10,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { error: "Execution rate limit exceeded" },
-});
+}));
 
-app.use(globalLimiter);
-
-// ─────────────────────────────────────────────────────────────
-// Public routes FIRST (IMPORTANT)
-// ─────────────────────────────────────────────────────────────
+// ─────────────────────────────
+// HEALTH
+// ─────────────────────────────
 
 app.get("/health", (_req, res) => {
-  res.json({ status: "ok", ts: new Date().toISOString() });
+  res.json({ status: "ok" });
 });
 
-app.use("/api/auth", authRouter); // 🔓 PUBLIC
+// ─────────────────────────────
+// 🔓 PUBLIC AUTH ROUTES (NO API KEY)
+// ─────────────────────────────
 
-// ─────────────────────────────────────────────────────────────
-// API KEY AUTH MIDDLEWARE (ONLY FOR PROTECTED ROUTES)
-// ─────────────────────────────────────────────────────────────
+app.use("/api/auth", authRouter);
+
+// ─────────────────────────────
+// 🔐 API KEY MIDDLEWARE (SDK ONLY)
+// ─────────────────────────────
 
 async function apiKeyMiddleware(req: Request, res: Response, next: NextFunction) {
-  const authHeader = req.headers["authorization"] ?? "";
+  const authHeader = req.headers.authorization ?? "";
 
-  const token = authHeader.startsWith("Bearer ")
+  const key = authHeader.startsWith("Bearer ")
     ? authHeader.slice(7).trim()
     : authHeader.trim();
 
-  if (!token) {
+  if (!key) {
     return res.status(401).json({ error: "Missing API key" });
   }
 
-  // system key
-  if (token === config.apiKey) {
+  // system key (optional)
+  if (key === config.apiKey) {
     (req as any).isSystemKey = true;
     return next();
   }
 
-  // agent key
   try {
-    const agent = await getAgentByApiKey(token);
+    const agent = await getAgentByApiKey(key);
 
-    if (agent) {
-      (req as any).agent = agent;
-      (req as any).agentApiKey = token;
-      return next();
+    if (!agent) {
+      return res.status(401).json({ error: "Invalid API key" });
     }
+
+    (req as any).agent = agent;
+    (req as any).agentApiKey = key;
+
+    return next();
   } catch (err) {
     logger.error("API key lookup failed", err);
+    return res.status(500).json({ error: "Auth error" });
   }
-
-  return res.status(401).json({ error: "Invalid API key" });
 }
 
-// ─────────────────────────────────────────────────────────────
-// PROTECTED ROUTES (API KEY REQUIRED)
-// ─────────────────────────────────────────────────────────────
+// ─────────────────────────────
+// 🔐 SDK ROUTES ONLY (IMPORTANT)
+// ─────────────────────────────
 
-app.use("/api/execute", executionLimiter);
-app.use("/api", apiKeyMiddleware); // 🔐 applies ONLY below routes
+app.use("/api/execute", apiKeyMiddleware, executeRouter);
+app.use("/api/agents", apiKeyMiddleware, agentRouter);
+app.use("/api/billing", apiKeyMiddleware, billingRouter);
 
-app.use("/api/execute", executeRouter);
-app.use("/api/agents", agentRouter);
-app.use("/api/billing", billingRouter);
-
-// ─────────────────────────────────────────────────────────────
+// ─────────────────────────────
 // 404
-// ─────────────────────────────────────────────────────────────
+// ─────────────────────────────
 
 app.use((_req, res) => {
   res.status(404).json({ error: "Not found" });
 });
 
-// ─────────────────────────────────────────────────────────────
+// ─────────────────────────────
 // Error handler
-// ─────────────────────────────────────────────────────────────
+// ─────────────────────────────
 
 app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
   const reqId = (req as any).id ?? "unknown";
 
   if (err instanceof RunixError) {
-    logger.warn(`[${reqId}] RunixError [${err.statusCode}]: ${err.message}`);
+    logger.warn(`[${reqId}] ${err.message}`);
     return res.status(err.statusCode).json({ error: err.message });
   }
 
