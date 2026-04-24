@@ -8,7 +8,7 @@ export const config = {
   apiKey: process.env.API_KEY ?? "",
   frontendUrl: process.env.FRONTEND_URL ?? "http://localhost:3000",
   google: {
-    clientId: process.env.GOOGLE_CLIENT_ID ?? "",
+    clientId: process.env.GOOGLE_AUTH_CLIENT_ID ?? "",
   },
   database: {
     url: process.env.DATABASE_URL ?? ""
