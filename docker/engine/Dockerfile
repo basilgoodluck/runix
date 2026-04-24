@@ -22,6 +22,7 @@ RUN npm ci --frozen-lockfile --omit=dev
 
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma  
+COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 COPY scripts/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
