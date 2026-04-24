@@ -34,6 +34,10 @@ authRouter.post(
       const { idToken } = req.body;
       if (!idToken) return res.status(400).json({ error: "idToken required" });
 
+      // add this temporarily right before verifyIdToken
+      console.log("CLIENT ID:", config.google.clientId);
+      console.log("TOKEN AUDIENCE:", JSON.parse(Buffer.from(idToken.split('.')[1], 'base64').toString()).aud);
+
       const ticket = await client.verifyIdToken({
         idToken,
         audience: config.google.clientId,
