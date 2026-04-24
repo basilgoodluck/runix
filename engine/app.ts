@@ -4,10 +4,12 @@ import helmet from "helmet";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
 import { randomUUID } from "crypto";
+
 import { executeRouter } from "./routes/execute.route";
 import { agentRouter } from "./routes/agent.route";
 import { billingRouter } from "./routes/billing.route";
 import authRouter from "./routes/auth.route";
+
 import { RunixError } from "@/lib/error";
 import { getAgentByApiKey } from "@/agents/agent.service";
 import logger from "@/lib/logger";
@@ -17,20 +19,30 @@ const app = express();
 
 app.set("trust proxy", 1);
 
+// ─────────────────────────────────────────────────────────────
+// Security + middleware
+// ─────────────────────────────────────────────────────────────
+
 app.use(helmet());
 
-app.use(cors({
-  origin: [
-    config.frontendUrl,
-    "http://localhost:3000",
-  ],
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: [config.frontendUrl, "http://localhost:3000"],
+    credentials: true,
+  })
+);
 
 app.use((req: Request, _res: Response, next: NextFunction) => {
-  (req as any).id = (req.headers["x-request-id"] as string) ?? randomUUID();
+  (req as any).id =
+    (req.headers["x-request-id"] as string) ?? randomUUID();
   next();
 });
+
+app.use(express.json({ limit: "64kb" }));
+
+// ─────────────────────────────────────────────────────────────
+// Rate limits
+// ─────────────────────────────────────────────────────────────
 
 const globalLimiter = rateLimit({
   windowMs: 60 * 1000,
@@ -49,67 +61,76 @@ const executionLimiter = rateLimit({
 });
 
 app.use(globalLimiter);
-app.use("/api/execute", executionLimiter);
 
-app.use((req: Request, res: Response, next: NextFunction) => {
-  if (req.method === "OPTIONS" || req.method === "GET" || req.method === "HEAD") return next();
-  
-  const contentType = req.headers["content-type"] ?? "";
-  if (!contentType.startsWith("application/json")) {
-    res.status(415).json({ error: "Unsupported Media Type: use application/json" });
-    return;
-  }
-  next();
-});
-
-app.use(express.json({ limit: "64kb" }));
+// ─────────────────────────────────────────────────────────────
+// Public routes FIRST (IMPORTANT)
+// ─────────────────────────────────────────────────────────────
 
 app.get("/health", (_req, res) => {
   res.json({ status: "ok", ts: new Date().toISOString() });
 });
 
-// ── Auth — validates system key OR registered agent API key ──────────────────
-app.use("/api", async (req: Request, res: Response, next: NextFunction) => {
-  // Agent registration is public
-  if (req.path.startsWith("/agents/register")) return next();
+app.use("/api/auth", authRouter); // 🔓 PUBLIC
 
+// ─────────────────────────────────────────────────────────────
+// API KEY AUTH MIDDLEWARE (ONLY FOR PROTECTED ROUTES)
+// ─────────────────────────────────────────────────────────────
+
+async function apiKeyMiddleware(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.headers["authorization"] ?? "";
-  const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : authHeader.trim();
+
+  const token = authHeader.startsWith("Bearer ")
+    ? authHeader.slice(7).trim()
+    : authHeader.trim();
 
   if (!token) {
-    res.status(401).json({ error: "Missing Authorization header" });
-    return;
+    return res.status(401).json({ error: "Missing API key" });
   }
 
-  // Check system API key first
+  // system key
   if (token === config.apiKey) {
     (req as any).isSystemKey = true;
     return next();
   }
 
-  // Check agent API key from Redis
+  // agent key
   try {
     const agent = await getAgentByApiKey(token);
+
     if (agent) {
       (req as any).agent = agent;
       (req as any).agentApiKey = token;
       return next();
     }
-  } catch {
-    // fall through to 401
+  } catch (err) {
+    logger.error("API key lookup failed", err);
   }
 
-  res.status(401).json({ error: "Invalid API key" });
-});
+  return res.status(401).json({ error: "Invalid API key" });
+}
 
-// ── Routes ────────────────────────────────────────────────────────────────────
-app.use("/api", executeRouter);
+// ─────────────────────────────────────────────────────────────
+// PROTECTED ROUTES (API KEY REQUIRED)
+// ─────────────────────────────────────────────────────────────
+
+app.use("/api/execute", executionLimiter);
+app.use("/api", apiKeyMiddleware); // 🔐 applies ONLY below routes
+
+app.use("/api/execute", executeRouter);
 app.use("/api/agents", agentRouter);
 app.use("/api/billing", billingRouter);
-app.use("/api/auth", authRouter);
+
+// ─────────────────────────────────────────────────────────────
+// 404
+// ─────────────────────────────────────────────────────────────
+
 app.use((_req, res) => {
   res.status(404).json({ error: "Not found" });
 });
+
+// ─────────────────────────────────────────────────────────────
+// Error handler
+// ─────────────────────────────────────────────────────────────
 
 app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
   const reqId = (req as any).id ?? "unknown";
