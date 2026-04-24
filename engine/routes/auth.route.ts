@@ -61,25 +61,12 @@ authRouter.post(
       // ─── Ensure agent exists ───────────────────────────────────
 
       let agent = await prisma.agent.findFirst({
-        where: { userId: user.id, metadataUri: "google-auth" },
+        where: { userId: user.id },
       });
 
       if (!agent) {
-        const created = await provisionAgent("google-auth", user.id);
-
-        agent = await prisma.agent.create({
-          data: {
-            id: created.agentId,
-            apiKey: created.apiKey,
-            walletId: created.walletId,
-            walletAddress: created.walletAddress,
-            onchainAgentId: created.onchainAgentId ?? null,
-            txHash: created.txHash ?? "",
-            metadataUri: created.metadataUri,
-            userId: user.id,
-            createdAt: new Date(),
-          },
-        });
+        const provisioned = await provisionAgent("google-auth", user.id);
+        agent = await prisma.agent.findUnique({ where: { id: provisioned.agentId } });
       }
 
       // ─── Tokens ────────────────────────────────────────────────
@@ -112,8 +99,8 @@ authRouter.post(
           name: user.name,
           picture: user.picture,
         },
-        walletAddress: agent.walletAddress,
-        onchainAgentId: agent.onchainAgentId,
+        walletAddress: agent?.walletAddress ?? "",
+        onchainAgentId: agent?.onchainAgentId ?? "",
       });
     } catch (err) {
       next(err);
