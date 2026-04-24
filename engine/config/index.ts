@@ -10,6 +10,9 @@ export const config = {
   google: {
     clientId: process.env.GOOGLE_CLIENT_ID ?? "",
   },
+  database: {
+    url: process.env.DATABASE_URL ?? ""
+  },
   jwt: {
     accessSecret: process.env.JWT_ACCESS_SECRET ?? "",
     refreshSecret: process.env.JWT_REFRESH_SECRET ?? "",
