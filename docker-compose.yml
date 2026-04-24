@@ -16,6 +16,7 @@ services:
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       API_KEY: ${API_KEY}
       TLS_ENABLED: ${TLS_ENABLED:-false}
+      DATABASE_URL: postgresql://runix:${POSTGRES_PASSWORD}@db:5432/runix
     volumes:
       - //var/run/docker.sock:/var/run/docker.sock
     depends_on:
@@ -27,7 +28,7 @@ services:
       - runix-internal
     security_opt:
       - no-new-privileges:true
-  
+
   db:
     image: postgres:16
     container_name: runix-db
@@ -40,6 +41,12 @@ services:
       - pgdata:/var/lib/postgresql/data
     networks:
       - runix-internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U runix -d runix"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
 
   redis:
     image: redis:7-alpine
