@@ -2,13 +2,6 @@
 
 import { useRef, useState, useEffect } from "react";
 
-const CAPABILITIES = [
-  { title: "Compute Execution", desc: "Run Python, Node, Go, and more in isolated, sandboxed environments. Your agent submits code and gets output — no runtime to manage, no environment to keep alive between calls." },
-  { title: "API Execution", desc: "Trigger any external service through a single interface. No wrapper logic to build or maintain. One call in, one structured result back — retried and handled automatically." },
-  { title: "Data Execution", desc: "Fetch and process live data sources within a single execution. Results come back typed and structured — your agent receives answers, not raw payloads it has to parse." },
-  { title: "Stateful Execution", desc: "Agents working across multi-step tasks keep full context between calls. Each execution has access to prior session state — enabling reasoning chains that span multiple steps." },
-];
-
 function useFadeUp(delay = 0) {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
@@ -17,7 +10,7 @@ function useFadeUp(delay = 0) {
     if (!el) return;
     const obs = new IntersectionObserver(
       ([entry]) => { if (entry.isIntersecting) { setVisible(true); obs.disconnect(); } },
-      { threshold: 0.1 }
+      { threshold: 0.06 }
     );
     obs.observe(el);
     return () => obs.disconnect();
@@ -26,8 +19,8 @@ function useFadeUp(delay = 0) {
     ref,
     style: {
       opacity: visible ? 1 : 0,
-      transform: visible ? "translateY(0px)" : "translateY(24px)",
-      transition: `opacity 0.65s ease ${delay}ms, transform 0.65s ease ${delay}ms`,
+      transform: visible ? "translateY(0px)" : "translateY(28px)",
+      transition: `opacity 0.7s cubic-bezier(0.16,1,0.3,1) ${delay}ms, transform 0.7s cubic-bezier(0.16,1,0.3,1) ${delay}ms`,
     },
   };
 }
@@ -37,215 +30,306 @@ function FadeUp({ children, delay = 0, style = {} }: { children: React.ReactNode
   return <div ref={fade.ref} style={{ ...fade.style, ...style }}>{children}</div>;
 }
 
+const CAPABILITIES = [
+  { title: "Compute Execution", desc: "Run Python, Node, Go in isolated sandboxes. Submit code, get output. No runtime to manage." },
+  { title: "API Execution", desc: "Trigger any external service through one interface. One call in, one structured result back." },
+  { title: "Data Execution", desc: "Fetch and process live data within a single execution. Results come back typed and structured." },
+  { title: "Stateful Execution", desc: "Agents keep full context between calls. Each execution has access to prior session state." },
+];
+
 export default function HomePage() {
+  const [hoveredCap, setHoveredCap] = useState<number | null>(null);
+
   return (
-    <div style={{ minHeight: "100vh", background: "#0b0c0e", color: "#fff", overflowX: "hidden" }}>
+    <div style={{ minHeight: "100vh", background: "#080809", color: "#fff", overflowX: "hidden", fontFamily: "'DM Sans', 'Helvetica Neue', sans-serif" }}>
       <style>{`
-        * { box-sizing: border-box; }
-        .grad-radial-tl { background: radial-gradient(ellipse 70% 60% at 0% 0%, rgba(99,102,241,0.07) 0%, transparent 70%), #0b0c0e; }
-        .grad-radial-tr { background: radial-gradient(ellipse 70% 60% at 100% 0%, rgba(139,92,246,0.07) 0%, transparent 70%), #0d0e10; }
-        .grad-radial-center { background: radial-gradient(ellipse 80% 60% at 50% 100%, rgba(99,102,241,0.06) 0%, transparent 70%), #0b0c0e; }
-        .grad-subtle-bottom { background: radial-gradient(ellipse 60% 50% at 50% 100%, rgba(139,92,246,0.05) 0%, transparent 70%), #0d0e10; }
-        .hero-glow { position: absolute; top: -120px; right: -200px; width: 700px; height: 700px; border-radius: 50%; background: radial-gradient(circle, rgba(99,102,241,0.1) 0%, transparent 65%); pointer-events: none; }
-        @media (max-width: 768px) {
-          .hero-section { padding: 150px 20px 72px !important; }
-          .hero-title { font-size: clamp(2.8rem, 12vw, 4rem) !important; }
-          .section-pad { padding: 72px 20px !important; }
-          .stats-grid { grid-template-columns: 1fr 1fr !important; }
-          .cap-grid { grid-template-columns: 1fr !important; }
-          .how-grid { grid-template-columns: 1fr !important; gap: 48px !important; }
-          .two-col { grid-template-columns: 1fr !important; }
-          .why-outer { grid-template-columns: 1fr !important; gap: 40px !important; }
-          .why-cards { grid-template-columns: 1fr !important; }
-          .cta-section { padding: 80px 20px !important; }
-          .hero-glow { display: none; }
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,700;0,9..40,800;1,9..40,300&family=DM+Mono:wght@400;500&display=swap');
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        ::selection { background: rgba(139,92,246,0.35); }
+
+        .btn-primary { display: inline-flex; align-items: center; padding: 12px 24px; border-radius: 7px; text-decoration: none; background: #fff; color: #080809; font-weight: 700; font-size: 15px; letter-spacing: -0.01em; transition: background 0.2s, transform 0.15s; white-space: nowrap; }
+        .btn-primary:hover { background: #e4e4e8; transform: translateY(-1px); }
+
+        .btn-ghost { display: inline-flex; align-items: center; padding: 12px 24px; border-radius: 7px; text-decoration: none; border: 1px solid rgba(255,255,255,0.12); color: rgba(255,255,255,0.5); font-weight: 500; font-size: 15px; letter-spacing: -0.01em; transition: border-color 0.2s, color 0.2s, transform 0.15s; white-space: nowrap; }
+        .btn-ghost:hover { border-color: rgba(139,92,246,0.6); color: rgba(139,92,246,0.9); transform: translateY(-1px); }
+
+        .sec { padding: 72px 20px; max-width: 1280px; margin: 0 auto; }
+        .sec-divider { border-top: 1px solid rgba(255,255,255,0.05); }
+        .sec-alt { background: #0b0b0d; }
+
+        .cap-row { display: grid; grid-template-columns: 1fr; gap: 10px; border-top: 1px solid rgba(255,255,255,0.06); padding: 28px 0; cursor: default; }
+        .cap-row:last-child { border-bottom: 1px solid rgba(255,255,255,0.06); }
+
+        .step-card { padding: 28px; background: #0f0f11; border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; transition: border-color 0.3s, transform 0.3s; }
+        .step-card:hover { border-color: rgba(139,92,246,0.35); transform: translateY(-2px); }
+
+        .use-item { padding: 32px 0; border-top: 1px solid rgba(255,255,255,0.06); display: flex; flex-direction: column; gap: 10px; }
+        .use-item:last-child { border-bottom: 1px solid rgba(255,255,255,0.06); }
+
+        .why-item { padding: 24px 0; border-top: 1px solid rgba(255,255,255,0.06); display: flex; gap: 16px; align-items: start; }
+        .why-item:last-child { border-bottom: 1px solid rgba(255,255,255,0.06); }
+        .why-dot { width: 5px; height: 5px; border-radius: 50%; background: rgba(139,92,246,0.6); margin-top: 9px; flex-shrink: 0; transition: background 0.2s; }
+        .why-item:hover .why-dot { background: rgba(139,92,246,1); }
+
+        .code-block { font-family: 'DM Mono', monospace; font-size: 12.5px; line-height: 1.85; background: #0f0f11; border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; padding: 24px; overflow-x: auto; }
+        .code-comment { color: rgba(255,255,255,0.22); }
+        .code-key { color: rgba(139,92,246,0.85); }
+        .code-str { color: rgba(110,231,183,0.8); }
+        .code-num { color: rgba(251,191,36,0.8); }
+
+        .noise-overlay { position: fixed; inset: 0; pointer-events: none; z-index: 100; opacity: 0.02; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); background-size: 200px; }
+
+        /* Tablet+ */
+        @media (min-width: 640px) {
+          .sec { padding: 100px 32px; }
+          .cap-row { grid-template-columns: 1fr 1fr; gap: 0; }
+          .use-item { display: grid; grid-template-columns: 160px 1fr 1fr; gap: 28px; align-items: start; }
+          .hero-grid { grid-template-columns: 1fr 1fr !important; }
+          .step-grid { grid-template-columns: 1fr 1fr !important; }
+          .why-grid { grid-template-columns: 1fr 1fr !important; }
+          .info-cards { grid-template-columns: 1fr 1fr 1fr !important; }
+          .stats-grid { grid-template-columns: repeat(4, 1fr) !important; }
+          .sec-header { flex-direction: row !important; align-items: flex-end !important; }
+          .sec-header p { text-align: right !important; }
+        }
+
+        @media (min-width: 1024px) {
+          .sec { padding: 110px 48px; }
+          .problem-grid { grid-template-columns: 360px 1fr !important; }
         }
       `}</style>
 
-      {/* HERO */}
-      <section className="hero-section grad-radial-tl" style={{ position: "relative", padding: "216px 32px 128px" }}>
-        <div className="hero-glow" />
-        <div style={{ maxWidth: 1280, margin: "0 auto", position: "relative" }}>
-          <FadeUp delay={0}>
-            <h1 className="hero-title" style={{ fontSize: "clamp(3.5rem, 8vw, 7.5rem)", fontWeight: 800, lineHeight: 0.93, letterSpacing: "-0.03em", marginBottom: 32 }}>
-              Run Code.<br />Trigger Actions.<br /><span style={{ color: "rgba(255,255,255,0.2)" }}>Fetch Data.</span>
-            </h1>
-          </FadeUp>
-          <FadeUp delay={120}>
-            <p style={{ fontSize: "clamp(17px, 2vw, 20px)", lineHeight: 1.75, maxWidth: 480, marginBottom: 44, color: "rgba(255,255,255,0.55)" }}>
-              A unified execution layer for autonomous agents and software systems. Pay per execution — no subscriptions, no infrastructure to own, no idle costs.
+      <div className="noise-overlay" />
+
+      {/* ── HERO ── */}
+      <section style={{ padding: "110px 20px 80px", maxWidth: 1280, margin: "0 auto", position: "relative" }}>
+        <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px)", backgroundSize: "72px 72px", maskImage: "radial-gradient(ellipse 80% 60% at 50% 0%, black 30%, transparent 100%)", pointerEvents: "none" }} />
+
+        <FadeUp delay={0}>
+          <h1 style={{ fontSize: "clamp(3rem, 11vw, 8.5rem)", fontWeight: 800, lineHeight: 0.9, letterSpacing: "-0.045em", marginBottom: 36 }}>
+            Run code.<br />
+            <span style={{ color: "rgba(255,255,255,0.16)" }}>Trigger actions.</span><br />
+            Fetch data.
+          </h1>
+        </FadeUp>
+
+        <FadeUp delay={100}>
+          <div className="hero-grid" style={{ display: "grid", gridTemplateColumns: "1fr", gap: "20px 60px", maxWidth: 860, marginBottom: 44 }}>
+            <p style={{ fontSize: "clamp(15px, 2.5vw, 18px)", lineHeight: 1.75, color: "rgba(255,255,255,0.46)", fontWeight: 300 }}>
+              A unified execution layer for autonomous agents and software systems. Pay per execution — no subscriptions, no infrastructure to own.
             </p>
-          </FadeUp>
-          <FadeUp delay={220}>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
-              <a href="/auth" style={{ padding: "13px 26px", borderRadius: 8, textDecoration: "none", background: "#fff", color: "#0b0c0e", fontWeight: 700, fontSize: 14 }}>Get API Key →</a>
-              <a href="#how" style={{ border: "1px solid rgba(255,255,255,0.15)", padding: "13px 24px", borderRadius: 8, textDecoration: "none", color: "rgba(255,255,255,0.5)", fontSize: 14, fontWeight: 600 }}>How it works</a>
+            <p style={{ fontSize: "clamp(15px, 2.5vw, 18px)", lineHeight: 1.75, color: "rgba(255,255,255,0.46)", fontWeight: 300 }}>
+              One API call in. One structured result out. Retried, sandboxed, and settled automatically.
+            </p>
+          </div>
+        </FadeUp>
+
+        <FadeUp delay={180}>
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+            <a href="/auth" className="btn-primary">Generate API Key</a>
+            <a href="#how" className="btn-ghost">See how it works</a>
+          </div>
+        </FadeUp>
+
+        <FadeUp delay={260} style={{ marginTop: 72 }}>
+          <div className="stats-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px 24px", borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: 44 }}>
+            {[
+              { val: "<42ms", label: "Average latency" },
+              { val: "$0.003", label: "Per execution at scale" },
+              { val: "4 types", label: "One unified API" },
+              { val: "Zero", label: "Infrastructure overhead" },
+            ].map(({ val, label }) => (
+              <div key={label}>
+                <div style={{ fontSize: "clamp(1.8rem, 5vw, 2.6rem)", fontWeight: 800, letterSpacing: "-0.035em", marginBottom: 6 }}>{val}</div>
+                <div style={{ fontSize: "clamp(13px, 2vw, 15px)", color: "rgba(255,255,255,0.35)" }}>{label}</div>
+              </div>
+            ))}
+          </div>
+        </FadeUp>
+      </section>
+
+      {/* ── IMAGE BREAK ── */}
+      <FadeUp>
+        <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 20px 72px" }}>
+          <div style={{ borderRadius: 14, overflow: "hidden", border: "1px solid rgba(255,255,255,0.06)", position: "relative" }}>
+            <img src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=1400&auto=format&fit=crop&q=80" alt="Server infrastructure" style={{ width: "100%", height: "clamp(200px, 40vw, 420px)", objectFit: "cover", display: "block", filter: "brightness(0.38) saturate(0.45)" }} />
+            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, rgba(8,8,9,0.6) 0%, transparent 50%, rgba(8,8,9,0.6) 100%)" }} />
+            <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 24px" }}>
+              <p style={{ fontSize: "clamp(1.1rem, 3vw, 1.9rem)", fontWeight: 700, letterSpacing: "-0.03em", color: "rgba(255,255,255,0.7)", textAlign: "center", maxWidth: 560, lineHeight: 1.3 }}>
+                Infrastructure designed for machines, not monthly billing cycles.
+              </p>
+            </div>
+          </div>
+        </div>
+      </FadeUp>
+
+      {/* ── PROBLEM ── */}
+      <section className="sec sec-divider">
+        <div className="problem-grid" style={{ display: "grid", gridTemplateColumns: "1fr", gap: "48px 72px", alignItems: "start" }}>
+          <FadeUp>
+            <div>
+              <h2 style={{ fontSize: "clamp(1.7rem, 4vw, 2.6rem)", fontWeight: 800, letterSpacing: "-0.035em", lineHeight: 1.1, marginBottom: 18 }}>Compute wasn't built for agents</h2>
+              <p style={{ fontSize: "clamp(14px, 2vw, 16px)", lineHeight: 1.8, color: "rgba(255,255,255,0.4)", fontWeight: 300 }}>Every major cloud was designed around human operators. Monthly plans, pre-provisioned servers, billing cycles that aggregate what you used last month.</p>
             </div>
           </FadeUp>
+          <div>
+            {[
+              { title: "Subscriptions don't fit agents", body: "Monthly plans were built for predictable human usage. Autonomous agents spike, pause, and burst unpredictably. You end up paying for idle capacity." },
+              { title: "Infrastructure ownership is overhead", body: "Configuring servers, containers, and autoscaling consumes engineering hours. None of it is your core product. It's a tax on every team that touches compute." },
+              { title: "Billing doesn't match actual usage", body: "Traditional cloud billing aggregates consumption across hours. By the time you see the cost, the moment to optimize has already passed." },
+            ].map(({ title, body }, i) => (
+              <FadeUp key={title} delay={i * 80}>
+                <div style={{ paddingTop: 32, paddingBottom: 32, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+                  <h3 style={{ fontSize: "clamp(1rem, 2.2vw, 1.25rem)", fontWeight: 700, letterSpacing: "-0.02em", marginBottom: 12, lineHeight: 1.2 }}>{title}</h3>
+                  <p style={{ fontSize: "clamp(14px, 2vw, 16px)", lineHeight: 1.8, color: "rgba(255,255,255,0.4)", fontWeight: 300 }}>{body}</p>
+                </div>
+              </FadeUp>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* STATS */}
-      <div style={{ padding: "0 32px" }}>
-        <div className="stats-grid" style={{ maxWidth: 1280, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
-          {[
-            { val: "<42ms", label: "Average execution latency" },
-            { val: "$0.003", label: "Per-execution cost at scale" },
-            { val: "4 types", label: "In one unified API" },
-            { val: "Zero", label: "Infrastructure to configure" },
-          ].map(({ val, label }, i) => (
-            <FadeUp key={label} delay={i * 80} style={{ background: "#111214", borderRadius: 12, boxShadow: "0 4px 24px rgba(0,0,0,0.4)", padding: "32px 24px" }}>
-              <div style={{ fontSize: "clamp(1.5rem, 2.5vw, 2.2rem)", fontWeight: 800, letterSpacing: "-0.02em", marginBottom: 8 }}>{val}</div>
-              <div style={{ fontSize: 15, color: "rgba(255,255,255,0.5)" }}>{label}</div>
+      {/* ── CAPABILITIES ── */}
+      <section className="sec-alt sec-divider">
+        <div className="sec">
+          <FadeUp>
+            <div className="sec-header" style={{ display: "flex", flexDirection: "column", gap: 16, marginBottom: 56 }}>
+              <h2 style={{ fontSize: "clamp(1.7rem, 4vw, 2.6rem)", fontWeight: 800, letterSpacing: "-0.035em" }}>What Runix executes</h2>
+              <p style={{ fontSize: "clamp(14px, 2vw, 16px)", color: "rgba(255,255,255,0.32)", maxWidth: 300, lineHeight: 1.6 }}>Four execution types. One API. No configuration.</p>
+            </div>
+          </FadeUp>
+          {CAPABILITIES.map((cap, i) => (
+            <FadeUp key={cap.title} delay={i * 55}>
+              <div className="cap-row" onMouseEnter={() => setHoveredCap(i)} onMouseLeave={() => setHoveredCap(null)}>
+                <h3 style={{ fontSize: "clamp(1rem, 2vw, 1.4rem)", fontWeight: 700, letterSpacing: "-0.025em", color: hoveredCap === i ? "#fff" : "rgba(255,255,255,0.65)", transition: "color 0.2s", paddingRight: 32, lineHeight: 1.2 }}>{cap.title}</h3>
+                <p style={{ fontSize: "clamp(14px, 1.8vw, 16px)", lineHeight: 1.8, color: "rgba(255,255,255,0.37)", fontWeight: 300 }}>{cap.desc}</p>
+              </div>
             </FadeUp>
           ))}
         </div>
-      </div>
-
-      {/* PROBLEM */}
-      <section className="grad-radial-center">
-        <div className="section-pad" style={{ maxWidth: 1280, margin: "0 auto", padding: "96px 32px" }}>
-          <FadeUp>
-            <div style={{ maxWidth: 600, marginBottom: 56 }}>
-              <h2 style={{ fontSize: "clamp(1.6rem, 3.5vw, 2.6rem)", fontWeight: 800, letterSpacing: "-0.02em", marginBottom: 20, lineHeight: 1.1 }}>Compute infrastructure wasn't built for agents</h2>
-              <p style={{ fontSize: 18, lineHeight: 1.75, color: "rgba(255,255,255,0.55)" }}>Every major cloud and automation platform was designed around human operators — monthly plans, pre-provisioned servers, and billing cycles that aggregate what you used last month.</p>
-            </div>
-          </FadeUp>
-          <div className="two-col" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
-            {[
-              { title: "Subscriptions don't fit agents", body: "Monthly plans were built for predictable human usage. Autonomous agents spike, pause, and burst unpredictably. You end up paying for idle capacity that never runs." },
-              { title: "Infrastructure ownership is overhead", body: "Configuring servers, containers, and autoscaling policies consumes engineering hours. None of it is your core product — it's a tax on every team that touches compute." },
-              { title: "Billing doesn't match actual usage", body: "Traditional cloud billing aggregates consumption across hours. By the time you see the cost, the moment to optimize has passed." },
-            ].map(({ title, body }, i) => (
-              <FadeUp key={title} delay={i * 80}>
-                <div style={{ background: "#111214", borderRadius: 12, padding: "28px 24px", boxShadow: "0 4px 24px rgba(0,0,0,0.4)", height: "100%" }}>
-                  <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>{title}</h3>
-                  <p style={{ fontSize: 16, lineHeight: 1.75, color: "rgba(255,255,255,0.55)" }}>{body}</p>
-                </div>
-              </FadeUp>
-            ))}
-          </div>
-        </div>
       </section>
 
-      {/* CAPABILITIES */}
-      <section>
-        <div className="section-pad" style={{ maxWidth: 1280, margin: "0 auto", padding: "96px 32px" }}>
-          <FadeUp>
-            <h2 style={{ fontSize: "clamp(1.4rem, 2.5vw, 2rem)", fontWeight: 800, letterSpacing: "-0.02em", marginBottom: 56 }}>What Runix executes</h2>
-          </FadeUp>
-          <div className="cap-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
-            {CAPABILITIES.map((cap, i) => (
-              <FadeUp key={cap.title} delay={i * 80}>
-                <div style={{ padding: "32px 24px", background: "#111214", borderRadius: 12, boxShadow: "0 4px 24px rgba(0,0,0,0.4)", height: "100%" }}>
-                  <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 14 }}>{cap.title}</h3>
-                  <p style={{ fontSize: 16, lineHeight: 1.75, color: "rgba(255,255,255,0.55)" }}>{cap.desc}</p>
-                </div>
-              </FadeUp>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* HOW IT WORKS */}
-      <section id="how" className="grad-radial-tr">
-        <div className="section-pad how-grid" style={{ maxWidth: 1280, margin: "0 auto", padding: "96px 32px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 80, alignItems: "start" }}>
-          <FadeUp>
-            <h2 style={{ fontSize: "clamp(1.6rem, 3vw, 2.2rem)", fontWeight: 800, letterSpacing: "-0.02em", lineHeight: 1.15, marginBottom: 20 }}>Three steps.<br />Zero infrastructure.</h2>
-            <p style={{ fontSize: 18, lineHeight: 1.75, maxWidth: 360, color: "rgba(255,255,255,0.55)" }}>Your agent describes what to run. Runix handles routing, isolation, execution, and settlement — returning a structured result synchronously.</p>
-          </FadeUp>
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      {/* ── HOW IT WORKS ── */}
+      <section id="how" className="sec sec-divider">
+        <FadeUp>
+          <h2 style={{ fontSize: "clamp(1.7rem, 4vw, 2.6rem)", fontWeight: 800, letterSpacing: "-0.035em", lineHeight: 1.05, marginBottom: 56 }}>Three steps.<br />Zero infrastructure.</h2>
+        </FadeUp>
+        <div className="step-grid" style={{ display: "grid", gridTemplateColumns: "1fr", gap: 24, alignItems: "start" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             {[
-              { n: "01", title: "Send an execution request", body: "Your system makes a single API call describing what to run. No setup required. No infrastructure to configure first." },
+              { n: "01", title: "Send an execution request", body: "Your system makes a single API call describing what to run. No setup, no infrastructure to configure first." },
               { n: "02", title: "Runix routes and isolates", body: "The request is matched to the right engine, sandboxed, and run in isolation. Multiple concurrent jobs handled automatically." },
-              { n: "03", title: "Results return, cost settles", body: "You receive a structured response — output, status, duration, execution ID. Payment settles in the same moment." },
+              { n: "03", title: "Results return, cost settles", body: "You receive a structured response with output, status, duration, and execution ID. Payment settles in the same moment." },
             ].map(({ n, title, body }, i) => (
-              <FadeUp key={n} delay={i * 100}>
-                <div style={{ position: "relative", overflow: "hidden", display: "flex", gap: 24, padding: "28px 24px", background: "#111214", borderRadius: 12, boxShadow: "0 4px 24px rgba(0,0,0,0.4)" }}>
-                  <span style={{ position: "absolute", right: 16, top: "50%", transform: "translateY(-50%)", fontSize: "clamp(5rem, 8vw, 7rem)", fontWeight: 900, color: "rgba(255,255,255,0.04)", lineHeight: 1, userSelect: "none", pointerEvents: "none" }}>{n}</span>
-                  <div style={{ position: "relative", zIndex: 1 }}>
-                    <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>{title}</div>
-                    <div style={{ fontSize: 16, lineHeight: 1.75, color: "rgba(255,255,255,0.55)" }}>{body}</div>
+              <FadeUp key={n} delay={i * 90}>
+                <div className="step-card">
+                  <div style={{ display: "flex", gap: 18, alignItems: "start" }}>
+                    <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, fontWeight: 500, color: "rgba(139,92,246,0.55)", paddingTop: 3, flexShrink: 0 }}>{n}</span>
+                    <div>
+                      <div style={{ fontSize: "clamp(0.95rem, 2vw, 1.1rem)", fontWeight: 700, letterSpacing: "-0.02em", marginBottom: 10 }}>{title}</div>
+                      <div style={{ fontSize: "clamp(13px, 1.8vw, 15px)", lineHeight: 1.8, color: "rgba(255,255,255,0.4)", fontWeight: 300 }}>{body}</div>
+                    </div>
                   </div>
                 </div>
               </FadeUp>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* USE CASES */}
-      <section>
-        <div className="section-pad" style={{ maxWidth: 1280, margin: "0 auto", padding: "96px 32px" }}>
-          <FadeUp>
-            <div style={{ maxWidth: 560, marginBottom: 56 }}>
-              <h2 style={{ fontSize: "clamp(1.6rem, 3vw, 2.2rem)", fontWeight: 800, letterSpacing: "-0.02em", marginBottom: 20, lineHeight: 1.1 }}>Built for the systems that never stop running</h2>
-              <p style={{ fontSize: 18, lineHeight: 1.75, color: "rgba(255,255,255,0.55)" }}>The organizations with the most demanding execution workloads are the ones least served by conventional compute platforms.</p>
+          <FadeUp delay={200}>
+            <div className="code-block">
+              <div style={{ marginBottom: 18, paddingBottom: 14, borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", gap: 6 }}>
+                {["#ff5f57", "#febc2e", "#28c840"].map(c => <div key={c} style={{ width: 10, height: 10, borderRadius: "50%", background: c }} />)}
+              </div>
+              <div className="code-comment">{"// Single execution request"}</div>
+              <br />
+              <div><span className="code-key">const</span> result = <span className="code-key">await</span> runix.<span style={{ color: "rgba(96,165,250,0.85)" }}>execute</span>{"({"}</div>
+              <div style={{ paddingLeft: 20 }}>
+                <div><span className="code-key">type</span>: <span className="code-str">"compute"</span>,</div>
+                <div><span className="code-key">runtime</span>: <span className="code-str">"python3.12"</span>,</div>
+                <div><span className="code-key">timeout_ms</span>: <span className="code-num">5000</span>,</div>
+              </div>
+              <div>{"});"}</div>
+              <br />
+              <div className="code-comment">{"// result is immediately available"}</div>
+              <div><span className="code-key">console</span>.log(result.<span style={{ color: "rgba(96,165,250,0.85)" }}>output</span>);     <span className="code-comment">{"// { ... }"}</span></div>
+              <div><span className="code-key">console</span>.log(result.<span style={{ color: "rgba(96,165,250,0.85)" }}>duration_ms</span>);  <span className="code-comment">{"// 38"}</span></div>
+              <div><span className="code-key">console</span>.log(result.<span style={{ color: "rgba(96,165,250,0.85)" }}>cost_usd</span>);     <span className="code-comment">{"// 0.00003"}</span></div>
             </div>
           </FadeUp>
-          <div className="two-col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-            {[
-              { industry: "Financial Services", title: "Real-time risk computation per market event", body: "Algorithmic trading systems need computation on every signal. Runix lets risk models execute per event, paying only for each computation." },
-              { industry: "AI Agents", title: "Autonomous agents that pay per action", body: "AI agents call compute, APIs, and data access as part of their decision loop — each action independently executed and settled." },
-              { industry: "Developer Tooling", title: "Code analysis that scales with activity", body: "CI/CD and code review tools have bursty, unpredictable workloads. Execute analysis jobs only when triggered — no idle infrastructure." },
-              { industry: "Data Platforms", title: "Per-query billing that mirrors actual value", body: "Data products that charge per query can now execute and settle payment in one step. Cost aligns exactly with consumption." },
-            ].map(({ industry, title, body }, i) => (
-              <FadeUp key={industry} delay={i * 80}>
-                <div style={{ background: "#111214", borderRadius: 12, padding: "28px 24px", boxShadow: "0 4px 24px rgba(0,0,0,0.4)", height: "100%" }}>
-                  <div style={{ fontSize: 11, fontWeight: 500, letterSpacing: "0.07em", textTransform: "uppercase" as const, marginBottom: 12, color: "rgba(255,255,255,0.3)" }}>{industry}</div>
-                  <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12, lineHeight: 1.4 }}>{title}</h3>
-                  <p style={{ fontSize: 16, lineHeight: 1.75, color: "rgba(255,255,255,0.55)" }}>{body}</p>
-                </div>
-              </FadeUp>
-            ))}
-          </div>
         </div>
       </section>
 
-      {/* WHY RUNIX */}
-      <section className="grad-subtle-bottom">
-        <div className="section-pad why-outer" style={{ maxWidth: 1280, margin: "0 auto", padding: "96px 32px", display: "grid", gridTemplateColumns: "1fr 2fr", gap: 64, alignItems: "start" }}>
+      {/* ── USE CASES ── */}
+      <section className="sec-alt sec-divider">
+        <div className="sec">
           <FadeUp>
-            <h2 style={{ fontSize: "clamp(1.4rem, 2.5vw, 2rem)", fontWeight: 800, letterSpacing: "-0.02em", lineHeight: 1.2, marginBottom: 16 }}>Built for agent workloads.</h2>
-            <p style={{ fontSize: 18, lineHeight: 1.75, color: "rgba(255,255,255,0.55)" }}>Most execution tools are wrappers. Runix is infrastructure — designed from the ground up for how agents actually run.</p>
+            <div className="sec-header" style={{ display: "flex", flexDirection: "column", gap: 16, marginBottom: 56 }}>
+              <h2 style={{ fontSize: "clamp(1.7rem, 4vw, 2.6rem)", fontWeight: 800, letterSpacing: "-0.035em" }}>Built for systems that never stop</h2>
+              <p style={{ fontSize: "clamp(14px, 2vw, 16px)", color: "rgba(255,255,255,0.32)", maxWidth: 260, lineHeight: 1.6 }}>The highest-demand workloads, least served by conventional platforms.</p>
+            </div>
           </FadeUp>
-          <div className="why-cards" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-            {[
-              { title: "Per-execution pricing", desc: "Cost is determined by what ran, not what you reserved. No minimums, no tiers, no idle waste." },
-              { title: "Machine-native design", desc: "The API surface and auth model are designed around agent access patterns — not human dashboards." },
-              { title: "Zero infrastructure surface", desc: "No servers to configure, no containers to build. Your team ships integrations, not infrastructure." },
-              { title: "Synchronous results", desc: "Call Runix, get a result. No polling, no callbacks, no async state to manage." },
-              { title: "Parallel by default", desc: "Submit concurrent jobs. Runix handles queuing and isolation automatically." },
-              { title: "Audit-ready output", desc: "Every execution returns an ID, status, duration, and output — a full record without building a logging layer." },
-            ].map(({ title, desc }, i) => (
-              <FadeUp key={title} delay={i * 60}>
-                <div style={{ background: "#111214", borderRadius: 12, padding: "24px", boxShadow: "0 4px 24px rgba(0,0,0,0.4)", height: "100%" }}>
-                  <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>{title}</div>
-                  <div style={{ fontSize: 16, lineHeight: 1.75, color: "rgba(255,255,255,0.55)" }}>{desc}</div>
-                </div>
-              </FadeUp>
-            ))}
-          </div>
+          {[
+            { industry: "Financial Services", title: "Real-time risk computation per market event", body: "Algorithmic trading systems need computation on every signal. Runix lets risk models execute per event, paying only for each computation." },
+            { industry: "AI Agents", title: "Autonomous agents that pay per action", body: "AI agents call compute, APIs, and data as part of their decision loop. Each action is independently executed, sandboxed, and settled." },
+            { industry: "Developer Tooling", title: "Code analysis that scales with activity", body: "CI/CD tools have bursty, unpredictable workloads. Execute analysis jobs only when triggered — no idle infrastructure to pay for." },
+            { industry: "Data Platforms", title: "Per-query billing that mirrors actual value", body: "Data products that charge per query can now execute and settle payment in one step. Cost aligns exactly with consumption." },
+          ].map(({ industry, title, body }, i) => (
+            <FadeUp key={industry} delay={i * 70}>
+              <div className="use-item">
+                <div style={{ fontSize: "clamp(11px, 1.5vw, 13px)", fontWeight: 600, letterSpacing: "0.04em", color: "rgba(139,92,246,0.65)" }}>{industry}</div>
+                <h3 style={{ fontSize: "clamp(0.95rem, 2vw, 1.15rem)", fontWeight: 700, letterSpacing: "-0.02em", lineHeight: 1.3 }}>{title}</h3>
+                <p style={{ fontSize: "clamp(13px, 1.8vw, 15px)", lineHeight: 1.8, color: "rgba(255,255,255,0.37)", fontWeight: 300 }}>{body}</p>
+              </div>
+            </FadeUp>
+          ))}
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="grad-radial-center cta-section" style={{ padding: "144px 32px" }}>
-        <div style={{ maxWidth: 1280, margin: "0 auto" }}>
+      {/* ── WHY RUNIX ── */}
+      <section className="sec sec-divider">
+        <FadeUp>
+          <div className="sec-header" style={{ display: "flex", flexDirection: "column", gap: 16, marginBottom: 56 }}>
+            <h2 style={{ fontSize: "clamp(1.7rem, 4vw, 2.6rem)", fontWeight: 800, letterSpacing: "-0.035em" }}>Built for agent workloads</h2>
+            <p style={{ fontSize: "clamp(14px, 2vw, 16px)", color: "rgba(255,255,255,0.32)", maxWidth: 300, lineHeight: 1.6 }}>Most execution tools are wrappers. Runix is infrastructure.</p>
+          </div>
+        </FadeUp>
+        <div className="why-grid" style={{ display: "grid", gridTemplateColumns: "1fr", gap: "0 64px" }}>
+          {[
+            { title: "Per-execution pricing", desc: "Cost is determined by what ran, not what you reserved. No minimums, no idle waste." },
+            { title: "Synchronous results", desc: "Call Runix, get a result. No polling, no callbacks, no async state to manage." },
+            { title: "Machine-native design", desc: "API surface designed around agent access patterns, not human dashboards." },
+            { title: "Parallel by default", desc: "Submit concurrent jobs. Runix handles queuing and isolation automatically." },
+            { title: "Zero infrastructure surface", desc: "No servers to configure, no containers to build. Ship integrations, not infrastructure." },
+            { title: "Audit-ready output", desc: "Every execution returns an ID, status, duration, and output. No logging layer needed." },
+          ].map(({ title, desc }, i) => (
+            <FadeUp key={title} delay={i * 55}>
+              <div className="why-item">
+                <div className="why-dot" />
+                <div>
+                  <div style={{ fontSize: "clamp(0.95rem, 1.8vw, 1.05rem)", fontWeight: 700, letterSpacing: "-0.02em", marginBottom: 7 }}>{title}</div>
+                  <div style={{ fontSize: "clamp(13px, 1.8vw, 15px)", lineHeight: 1.75, color: "rgba(255,255,255,0.37)", fontWeight: 300 }}>{desc}</div>
+                </div>
+              </div>
+            </FadeUp>
+          ))}
+        </div>
+      </section>
+
+      {/* ── CTA ── */}
+      <section className="sec-divider">
+        <div className="sec">
           <FadeUp>
-            <h2 style={{ fontSize: "clamp(3rem, 7vw, 5.5rem)", fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 0.93, marginBottom: 32 }}>
-              First request<br /><span style={{ color: "rgba(255,255,255,0.2)" }}>in 2 minutes.</span>
-            </h2>
-          </FadeUp>
-          <FadeUp delay={100}>
-            <p style={{ fontSize: 18, lineHeight: 1.75, maxWidth: 400, marginBottom: 40, color: "rgba(255,255,255,0.55)" }}>
-              Generate an API key and send your first execution. No card required, no setup calls, no infrastructure to provision.
-            </p>
-          </FadeUp>
-          <FadeUp delay={200}>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
-              <a href="/auth" style={{ padding: "14px 28px", borderRadius: 8, textDecoration: "none", background: "#fff", color: "#0b0c0e", fontWeight: 700, fontSize: 14 }}>Generate API Key →</a>
-              <a href="#" style={{ border: "1px solid rgba(255,255,255,0.15)", padding: "14px 24px", borderRadius: 8, textDecoration: "none", color: "rgba(255,255,255,0.5)", fontSize: 14, fontWeight: 600 }}>Read the Docs</a>
+            <div style={{ maxWidth: 720 }}>
+              <h2 style={{ fontSize: "clamp(2.6rem, 9vw, 6rem)", fontWeight: 800, letterSpacing: "-0.045em", lineHeight: 0.9, marginBottom: 32 }}>
+                First request<br />
+                <span style={{ color: "rgba(255,255,255,0.14)" }}>in 2 minutes.</span>
+              </h2>
+              <p style={{ fontSize: "clamp(15px, 2.5vw, 18px)", lineHeight: 1.75, maxWidth: 440, marginBottom: 40, color: "rgba(255,255,255,0.42)", fontWeight: 300 }}>
+                Generate an API key and send your first execution. No card required, no setup calls, no infrastructure to provision.
+              </p>
+              <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                <a href="/auth" className="btn-primary">Generate API Key</a>
+                <a href="/docs" className="btn-ghost">Read the Docs</a>
+              </div>
             </div>
           </FadeUp>
         </div>

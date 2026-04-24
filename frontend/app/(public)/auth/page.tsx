@@ -1,239 +1,92 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+const GOOGLE_AUTH_URL = process.env.NEXT_PUBLIC_GOOGLE_AUTH_URL!;
 
 export default function AuthPage() {
-  const router = useRouter();
-  const [tab, setTab] = useState<"register" | "login">("register");
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [apiKey, setApiKey] = useState("");
-  const [result, setResult] = useState<{ apiKey: string; wallet: string } | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [copied, setCopied] = useState<"key" | "wallet" | null>(null);
-
-  async function handleRegister() {
-    setLoading(true);
-    setError("");
-    try {
-      const res = await fetch("/api/agents/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Registration failed");
-      localStorage.setItem("runix_api_key", data.apiKey);
-      setResult({ apiKey: data.apiKey, wallet: data.walletAddress });
-    } catch (e: any) {
-      setError(e.message);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleLogin() {
-    setLoading(true);
-    setError("");
-    try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ apiKey }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Invalid API key");
-      localStorage.setItem("runix_api_key", apiKey);
-      router.push("/dashboard");
-    } catch (e: any) {
-      setError(e.message);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  function copy(text: string, which: "key" | "wallet") {
-    navigator.clipboard.writeText(text);
-    setCopied(which);
-    setTimeout(() => setCopied(null), 1500);
+  function handleGoogle() {
+    window.location.href = GOOGLE_AUTH_URL;
   }
 
   return (
     <>
       <style>{`
-        * { box-sizing: border-box; }
-        .auth-input {
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&display=swap');
+        .google-btn {
           width: 100%;
-          background: #060708;
-          border: 1px solid #1e2128;
-          border-radius: 8px;
-          padding: 12px 14px;
-          color: #e8e8e8;
-          font-family: 'Inter', sans-serif;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 12px;
+          padding: 14px 20px;
+          border-radius: 10px;
+          background: rgba(124,58,237,0.12);
+          border: 1px solid rgba(124,58,237,0.35);
+          color: rgba(255,255,255,0.88);
+          font-family: 'DM Sans', sans-serif;
           font-size: 15px;
-          outline: none;
-          transition: border-color 0.15s;
-        }
-        .auth-input:focus { border-color: #3b82f6; }
-        .btn-primary {
-          width: 100%;
-          padding: 13px;
-          background: #3b82f6;
-          border: none;
-          border-radius: 8px;
-          color: #fff;
-          font-family: 'Inter', sans-serif;
-          font-size: 15px;
-          font-weight: 700;
+          font-weight: 600;
           cursor: pointer;
-          transition: opacity 0.15s;
+          transition: all 0.2s;
+          letter-spacing: -0.01em;
         }
-        .btn-primary:hover { opacity: 0.88; }
-        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-        .btn-ghost {
-          padding: 12px 16px;
-          background: transparent;
-          border: 1px solid #1e2128;
-          border-radius: 8px;
-          color: #e8e8e8;
-          font-family: 'Inter', sans-serif;
-          font-size: 14px;
-          cursor: pointer;
-          white-space: nowrap;
-          transition: border-color 0.15s;
+        .google-btn:hover {
+          background: rgba(124,58,237,0.22);
+          border-color: rgba(139,92,246,0.6);
+          transform: translateY(-1px);
+          box-shadow: 0 4px 20px rgba(124,58,237,0.2);
         }
-        .btn-ghost:hover { border-color: #3b82f6; }
       `}</style>
       <div style={{
         minHeight: "100vh",
-        background: "#060708",
+        background: "#080809",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         padding: "20px 16px",
-        fontFamily: "'Inter', sans-serif",
+        fontFamily: "'DM Sans', sans-serif",
       }}>
         <div style={{
           width: "100%",
-          maxWidth: 440,
-          background: "#111214",
-          border: "1px solid #1e2128",
+          maxWidth: 400,
+          background: "#0f0f11",
+          border: "1px solid rgba(124,58,237,0.2)",
           borderRadius: 18,
-          padding: "36px 28px",
-          boxShadow: "0 8px 40px rgba(0,0,0,0.5)",
+          padding: "40px 28px",
+          boxShadow: "0 8px 48px rgba(0,0,0,0.6), 0 0 0 1px rgba(124,58,237,0.08)",
         }}>
-          <div style={{ fontSize: 16, fontWeight: 800, letterSpacing: "0.12em", color: "#3b82f6", marginBottom: 32 }}>
-            RUNIX
-          </div>
-
-          {/* Tabs */}
-          <div style={{ display: "flex", border: "1px solid #1e2128", borderRadius: 10, overflow: "hidden", marginBottom: 28 }}>
-            {(["register", "login"] as const).map(t => (
-              <button key={t} onClick={() => { setTab(t); setResult(null); setError(""); }} style={{
-                flex: 1,
-                padding: "11px 0",
-                background: tab === t ? "#1a1f2e" : "transparent",
-                border: "none",
-                cursor: "pointer",
-                color: tab === t ? "#ffffff" : "#8a8f98",
-                fontFamily: "inherit",
-                fontSize: 14,
-                fontWeight: tab === t ? 600 : 400,
-              }}>
-                {t.charAt(0).toUpperCase() + t.slice(1)}
-              </button>
-            ))}
-          </div>
-
-          {error && (
+          {/* Logo */}
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 36 }}>
             <div style={{
-              fontSize: 14,
-              color: "#ef4444",
-              background: "#ef444415",
-              border: "1px solid #ef444430",
-              borderRadius: 8,
-              padding: "10px 14px",
-              marginBottom: 20,
+              width: 28, height: 28, borderRadius: 7, background: "#7c3aed",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              boxShadow: "0 0 0 1px rgba(139,92,246,0.4), 0 4px 16px rgba(124,58,237,0.45)",
             }}>
-              {error}
+              <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#fff", boxShadow: "0 0 8px rgba(255,255,255,0.9)" }} />
             </div>
-          )}
-
-          {/* Register form */}
-          {tab === "register" && !result && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-              <div>
-                <label style={labelStyle}>AGENT NAME</label>
-                <input value={name} onChange={e => setName(e.target.value)} placeholder="my-agent" className="auth-input" />
-              </div>
-              <div>
-                <label style={labelStyle}>EMAIL</label>
-                <input value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" type="email" className="auth-input" />
-              </div>
-              <button onClick={handleRegister} disabled={loading} className="btn-primary">
-                {loading ? "Registering..." : "Create account"}
-              </button>
-              <p style={{ fontSize: 13, color: "#8a8f98", lineHeight: 1.7, margin: 0 }}>
-                A Circle wallet is created automatically. Fund it with USDC to start running jobs.
-              </p>
-            </div>
-          )}
-
-          {/* Register result */}
-          {tab === "register" && result && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-              <p style={{ fontSize: 14, color: "#3b82f6", margin: 0, lineHeight: 1.6 }}>
-                Account created. Copy your API key — it won't be shown again.
-              </p>
-              <div>
-                <label style={labelStyle}>API KEY</label>
-                <div style={{ display: "flex", gap: 8 }}>
-                  <input readOnly value={result.apiKey} className="auth-input" style={{ flex: 1 }} />
-                  <button onClick={() => copy(result.apiKey, "key")} className="btn-ghost">
-                    {copied === "key" ? "✓" : "Copy"}
-                  </button>
-                </div>
-              </div>
-              <div>
-                <label style={labelStyle}>WALLET ADDRESS</label>
-                <div style={{ display: "flex", gap: 8 }}>
-                  <input readOnly value={result.wallet} className="auth-input" style={{ flex: 1 }} />
-                  <button onClick={() => copy(result.wallet, "wallet")} className="btn-ghost">
-                    {copied === "wallet" ? "✓" : "Copy"}
-                  </button>
-                </div>
-              </div>
-              <button onClick={() => router.push("/dashboard")} className="btn-primary">
-                Go to Dashboard →
-              </button>
-            </div>
-          )}
-
-          {/* Login */}
-          {tab === "login" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-              <div>
-                <label style={labelStyle}>API KEY</label>
-                <input value={apiKey} onChange={e => setApiKey(e.target.value)} placeholder="rux_..." type="password" className="auth-input" />
-              </div>
-              <button onClick={handleLogin} disabled={loading} className="btn-primary">
-                {loading ? "Authenticating..." : "Login"}
-              </button>
-            </div>
-          )}
+            <span style={{ fontWeight: 800, fontSize: 20, letterSpacing: "-0.03em", color: "#fff" }}>Runix</span>
+          </div>
+          <h1 style={{ fontSize: "clamp(1.4rem, 4vw, 1.7rem)", fontWeight: 800, letterSpacing: "-0.03em", color: "#fff", marginBottom: 8, lineHeight: 1.1 }}>
+            Get started
+          </h1>
+          <p style={{ fontSize: 15, color: "rgba(255,255,255,0.38)", fontWeight: 400, marginBottom: 32, lineHeight: 1.6 }}>
+            Sign in to generate your API key and start running executions.
+          </p>
+          <button onClick={handleGoogle} className="google-btn">
+            {/* Google G icon */}
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615Z" fill="#4285F4"/>
+              <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18Z" fill="#34A853"/>
+              <path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332Z" fill="#FBBC05"/>
+              <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58Z" fill="#EA4335"/>
+            </svg>
+            Continue with Google
+          </button>
+          <p style={{ fontSize: 13, color: "rgba(255,255,255,0.2)", textAlign: "center", marginTop: 24, lineHeight: 1.6 }}>
+            By continuing, you agree to our terms of service.
+          </p>
         </div>
       </div>
     </>
   );
 }
-
-const labelStyle: React.CSSProperties = {
-  display: "block",
-  fontSize: 11,
-  color: "#8a8f98",
-  marginBottom: 8,
-  letterSpacing: "0.08em",
-  fontWeight: 600,
-};
