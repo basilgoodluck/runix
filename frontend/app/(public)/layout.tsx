@@ -31,21 +31,87 @@ function Header() {
   return (
     <>
       <style>{`
-        .nav-link { text-decoration: none; font-size: 15px; color: rgba(255,255,255,0.45); font-weight: 500; transition: color 0.2s; }
-        .nav-link:hover { color: rgba(255,255,255,0.85); }
-        .hbtn-ghost { display: inline-flex; align-items: center; padding: 8px 18px; border-radius: 7px; text-decoration: none; border: 1px solid rgba(255,255,255,0.12); color: rgba(255,255,255,0.5); font-weight: 600; font-size: 14px; transition: all 0.2s; }
-        .hbtn-ghost:hover { border-color: rgba(139,92,246,0.55); color: rgba(167,139,250,0.9); }
-        .hbtn-primary { display: inline-flex; align-items: center; padding: 8px 18px; border-radius: 7px; text-decoration: none; background: #7c3aed; color: #fff; font-weight: 700; font-size: 14px; transition: all 0.2s; }
-        .hbtn-primary:hover { background: #6d28d9; transform: translateY(-1px); }
-        .mob-menu { display: none; flex-direction: column; background: rgba(8,8,9,0.98); border-top: 1px solid rgba(255,255,255,0.06); }
+        .nav-link {
+          text-decoration: none;
+          font-size: 16px;
+          font-weight: 500;
+          color: rgba(255,255,255,0.8);
+          transition: color 0.2s;
+        }
+        .nav-link:hover { color: #fff; }
+        
+        .hbtn-ghost {
+          display: inline-flex;
+          align-items: center;
+          padding: 8px 18px;
+          border-radius: 7px;
+          text-decoration: none;
+          border: 1px solid rgba(255,255,255,0.2);
+          color: rgba(255,255,255,0.8);
+          font-weight: 600;
+          font-size: 15px;
+          transition: all 0.2s;
+        }
+        .hbtn-ghost:hover {
+          border-color: rgba(139,92,246,0.6);
+          color: #fff;
+        }
+        
+        .hbtn-primary {
+          display: inline-flex;
+          align-items: center;
+          padding: 8px 18px;
+          border-radius: 7px;
+          text-decoration: none;
+          background: #7c3aed;
+          color: #fff;
+          font-weight: 700;
+          font-size: 15px;
+          transition: all 0.2s;
+        }
+        .hbtn-primary:hover {
+          background: #6d28d9;
+          transform: translateY(-1px);
+        }
+        
+        .mob-menu {
+          display: none;
+          flex-direction: column;
+          background: rgba(8,8,9,0.98);
+          border-top: 1px solid rgba(255,255,255,0.06);
+        }
         .mob-menu.open { display: flex; }
-        .mob-menu a { padding: 15px 24px; font-size: 16px; color: rgba(255,255,255,0.5); text-decoration: none; font-weight: 500; border-bottom: 1px solid rgba(255,255,255,0.04); transition: color 0.2s; }
+        .mob-menu a {
+          padding: 15px 24px;
+          font-size: 16px;
+          color: rgba(255,255,255,0.7);
+          text-decoration: none;
+          font-weight: 500;
+          border-bottom: 1px solid rgba(255,255,255,0.04);
+          transition: color 0.2s;
+        }
         .mob-menu a:hover { color: #fff; }
-        .burger { display: none; flex-direction: column; gap: 5px; cursor: pointer; padding: 4px; background: none; border: none; }
-        .burger span { display: block; width: 22px; height: 2px; background: rgba(255,255,255,0.5); border-radius: 2px; transition: all 0.25s; }
+        
+        .burger {
+          display: none;
+          flex-direction: column;
+          gap: 5px;
+          cursor: pointer;
+          padding: 4px;
+          background: none;
+          border: none;
+        }
+        .burger span {
+          display: block;
+          width: 22px;
+          height: 2px;
+          background: rgba(255,255,255,0.6);
+          border-radius: 2px;
+          transition: all 0.25s;
+        }
+        
         @media (max-width: 640px) {
-          .hdr-nav { display: none !important; }
-          .hdr-btns { display: none !important; }
+          .hdr-right { display: none !important; }
           .burger { display: flex !important; }
         }
       `}</style>
@@ -58,13 +124,14 @@ function Header() {
       }}>
         <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 20px", height: 68, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <RunixLogo />
-          <nav className="hdr-nav" style={{ display: "flex", alignItems: "center", gap: 28 }}>
+          
+          {/* Right section: Docs + Sign in + Get API Key */}
+          <div className="hdr-right" style={{ display: "flex", alignItems: "center", gap: 24 }}>
             <a href="/docs" className="nav-link">Docs</a>
-          </nav>
-          <div className="hdr-btns" style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <a href="/auth" className="hbtn-ghost">Sign in</a>
             <a href="/auth" className="hbtn-primary">Get API Key</a>
           </div>
+          
           <button className="burger" onClick={() => setMenuOpen(o => !o)} aria-label="Toggle menu">
             <span style={{ transform: menuOpen ? "rotate(45deg) translate(5px, 5px)" : "none" }} />
             <span style={{ opacity: menuOpen ? 0 : 1 }} />
@@ -84,7 +151,6 @@ function Header() {
     </>
   );
 }
-
 function Footer() {
   return (
     <footer style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>

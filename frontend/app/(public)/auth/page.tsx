@@ -1,42 +1,46 @@
 "use client";
 
-const GOOGLE_AUTH_URL = process.env.NEXT_PUBLIC_GOOGLE_AUTH_URL!;
+import { GoogleLogin, GoogleOAuthProvider } from "@react-oauth/google";
+import { useState } from "react";
 
 export default function AuthPage() {
-  function handleGoogle() {
-    window.location.href = GOOGLE_AUTH_URL;
-  }
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSuccess = async (credentialResponse: any) => {
+    setIsLoading(true);
+    setError("");
+
+    try {
+      const idToken = credentialResponse.credential; // ← Google ID token
+
+      const res = await fetch(process.env.NEXT_PUBLIC_GOOGLE_AUTH_URL!, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: idToken }), // send as { token: "..." }
+      });
+
+      if (res.ok) {
+        // Redirect to your dashboard or reload
+        window.location.href = "/dashboard";
+      } else {
+        const text = await res.text();
+        setError(`Authentication failed: ${text}`);
+      }
+    } catch (err) {
+      setError("Network error. Please try again.");
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleError = () => {
+    setError("Google Sign-In failed. Please try again.");
+  };
 
   return (
-    <>
-      <style>{`
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&display=swap');
-        .google-btn {
-          width: 100%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 12px;
-          padding: 14px 20px;
-          border-radius: 10px;
-          background: rgba(124,58,237,0.12);
-          border: 1px solid rgba(124,58,237,0.35);
-          color: rgba(255,255,255,0.88);
-          font-family: 'DM Sans', sans-serif;
-          font-size: 15px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.2s;
-          letter-spacing: -0.01em;
-        }
-        .google-btn:hover {
-          background: rgba(124,58,237,0.22);
-          border-color: rgba(139,92,246,0.6);
-          transform: translateY(-1px);
-          box-shadow: 0 4px 20px rgba(124,58,237,0.2);
-        }
-      `}</style>
+    <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!}>
       <div style={{
         minHeight: "100vh",
         background: "#080809",
@@ -72,21 +76,28 @@ export default function AuthPage() {
           <p style={{ fontSize: 15, color: "rgba(255,255,255,0.38)", fontWeight: 400, marginBottom: 32, lineHeight: 1.6 }}>
             Sign in to generate your API key and start running executions.
           </p>
-          <button onClick={handleGoogle} className="google-btn">
-            {/* Google G icon */}
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-              <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615Z" fill="#4285F4"/>
-              <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18Z" fill="#34A853"/>
-              <path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332Z" fill="#FBBC05"/>
-              <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58Z" fill="#EA4335"/>
-            </svg>
-            Continue with Google
-          </button>
+
+          {error && (
+            <div style={{ color: "#ef4444", fontSize: 14, marginBottom: 16, textAlign: "center" }}>
+              {error}
+            </div>
+          )}
+
+          <GoogleLogin
+            onSuccess={handleSuccess}
+            onError={handleError}
+            useOneTap={false}
+            theme="filled_black"
+            shape="rectangular"
+            width="100%"
+            text="continue_with"
+          />
+
           <p style={{ fontSize: 13, color: "rgba(255,255,255,0.2)", textAlign: "center", marginTop: 24, lineHeight: 1.6 }}>
             By continuing, you agree to our terms of service.
           </p>
         </div>
       </div>
-    </>
+    </GoogleOAuthProvider>
   );
 }

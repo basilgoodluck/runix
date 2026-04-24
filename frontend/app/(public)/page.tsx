@@ -50,10 +50,10 @@ export default function HomePage() {
         .btn-primary { display: inline-flex; align-items: center; padding: 12px 24px; border-radius: 7px; text-decoration: none; background: #fff; color: #080809; font-weight: 700; font-size: 15px; letter-spacing: -0.01em; transition: background 0.2s, transform 0.15s; white-space: nowrap; }
         .btn-primary:hover { background: #e4e4e8; transform: translateY(-1px); }
 
-        .btn-ghost { display: inline-flex; align-items: center; padding: 12px 24px; border-radius: 7px; text-decoration: none; border: 1px solid rgba(255,255,255,0.12); color: rgba(255,255,255,0.5); font-weight: 500; font-size: 15px; letter-spacing: -0.01em; transition: border-color 0.2s, color 0.2s, transform 0.15s; white-space: nowrap; }
+        .btn-ghost { display: inline-flex; align-items: center; padding: 12px 24px; border-radius: 7px; text-decoration: none; border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.7); font-weight: 500; font-size: 15px; letter-spacing: -0.01em; transition: border-color 0.2s, color 0.2s, transform 0.15s; white-space: nowrap; }
         .btn-ghost:hover { border-color: rgba(139,92,246,0.6); color: rgba(139,92,246,0.9); transform: translateY(-1px); }
 
-        .sec { padding: 72px 20px; max-width: 1280px; margin: 0 auto; }
+        .sec { padding: 60px 20px; max-width: 1280px; margin: 0 auto; }
         .sec-divider { border-top: 1px solid rgba(255,255,255,0.05); }
         .sec-alt { background: #0b0b0d; }
 
@@ -63,31 +63,76 @@ export default function HomePage() {
         .step-card { padding: 28px; background: #0f0f11; border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; transition: border-color 0.3s, transform 0.3s; }
         .step-card:hover { border-color: rgba(139,92,246,0.35); transform: translateY(-2px); }
 
-        .use-item { padding: 32px 0; border-top: 1px solid rgba(255,255,255,0.06); display: flex; flex-direction: column; gap: 10px; }
-        .use-item:last-child { border-bottom: 1px solid rgba(255,255,255,0.06); }
-
         .why-item { padding: 24px 0; border-top: 1px solid rgba(255,255,255,0.06); display: flex; gap: 16px; align-items: start; }
         .why-item:last-child { border-bottom: 1px solid rgba(255,255,255,0.06); }
         .why-dot { width: 5px; height: 5px; border-radius: 50%; background: rgba(139,92,246,0.6); margin-top: 9px; flex-shrink: 0; transition: background 0.2s; }
         .why-item:hover .why-dot { background: rgba(139,92,246,1); }
 
         .code-block { font-family: 'DM Mono', monospace; font-size: 12.5px; line-height: 1.85; background: #0f0f11; border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; padding: 24px; overflow-x: auto; }
-        .code-comment { color: rgba(255,255,255,0.22); }
+        .code-comment { color: rgba(255,255,255,0.4); }
         .code-key { color: rgba(139,92,246,0.85); }
         .code-str { color: rgba(110,231,183,0.8); }
         .code-num { color: rgba(251,191,36,0.8); }
 
         .noise-overlay { position: fixed; inset: 0; pointer-events: none; z-index: 100; opacity: 0.02; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); background-size: 200px; }
 
-        /* Tablet+ */
+        /* Use cases card grid */
+        .usecase-grid {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 28px;
+        }
+        .usecase-card {
+          background: #0f0f11;
+          border: 1px solid rgba(255,255,255,0.06);
+          border-radius: 20px;
+          padding: 28px 24px;
+          transition: all 0.3s ease;
+        }
+        .usecase-card:hover {
+          border-color: rgba(139,92,246,0.4);
+          transform: translateY(-3px);
+          background: #111114;
+        }
+        .usecase-badge {
+          font-size: 13px;
+          font-weight: 600;
+          letter-spacing: 0.04em;
+          color: rgba(139,92,246,0.8);
+          margin-bottom: 16px;
+          display: inline-block;
+          padding: 4px 12px;
+          border-radius: 40px;
+          background: rgba(139,92,246,0.12);
+          border: 1px solid rgba(139,92,246,0.2);
+        }
+        .usecase-title {
+          font-size: clamp(1.2rem, 3vw, 1.5rem);
+          font-weight: 700;
+          letter-spacing: -0.02em;
+          margin-bottom: 16px;
+          line-height: 1.3;
+          color: rgba(255,255,255,0.92);
+        }
+        .usecase-desc {
+          font-size: clamp(14px, 1.8vw, 16px);
+          line-height: 1.7;
+          color: rgba(255,255,255,0.7);
+          font-weight: 300;
+        }
+
+        @media (min-width: 640px) {
+          .usecase-grid { grid-template-columns: repeat(2, 1fr); gap: 32px; }
+        }
+        @media (min-width: 1024px) {
+          .usecase-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+
         @media (min-width: 640px) {
           .sec { padding: 100px 32px; }
           .cap-row { grid-template-columns: 1fr 1fr; gap: 0; }
-          .use-item { display: grid; grid-template-columns: 160px 1fr 1fr; gap: 28px; align-items: start; }
-          .hero-grid { grid-template-columns: 1fr 1fr !important; }
           .step-grid { grid-template-columns: 1fr 1fr !important; }
           .why-grid { grid-template-columns: 1fr 1fr !important; }
-          .info-cards { grid-template-columns: 1fr 1fr 1fr !important; }
           .stats-grid { grid-template-columns: repeat(4, 1fr) !important; }
           .sec-header { flex-direction: row !important; align-items: flex-end !important; }
           .sec-header p { text-align: right !important; }
@@ -97,55 +142,86 @@ export default function HomePage() {
           .sec { padding: 110px 48px; }
           .problem-grid { grid-template-columns: 360px 1fr !important; }
         }
+
+        @media (max-width: 639px) {
+          .step-card { padding: 20px; }
+          .code-block { padding: 16px; font-size: 11px; }
+        }
       `}</style>
 
       <div className="noise-overlay" />
 
-      {/* ── HERO ── */}
-      <section style={{ padding: "110px 20px 80px", maxWidth: 1280, margin: "0 auto", position: "relative" }}>
-        <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px)", backgroundSize: "72px 72px", maskImage: "radial-gradient(ellipse 80% 60% at 50% 0%, black 30%, transparent 100%)", pointerEvents: "none" }} />
+      {/* ── HERO ── (full viewport, original padding restored) */}
+      <section style={{
+        padding: "90px 20px 60px",      // mobile default
+        minHeight: "100vh",
+        maxWidth: 1280,
+        margin: "0 auto",
+        position: "relative",
+      }}>
+        {/* Desktop larger padding via media query inside style? We'll keep responsive inside component */}
+        <style>{`
+          @media (min-width: 640px) {
+            .hero-section { padding: 110px 32px 80px !important; }
+          }
+        `}</style>
+        <div className="hero-section" style={{
+          padding: "90px 20px 60px",
+          minHeight: "100vh",
+          maxWidth: 1280,
+          margin: "0 auto",
+          position: "relative",
+        }}>
+          <div style={{
+            position: "absolute", inset: 0,
+            backgroundImage: "linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px)",
+            backgroundSize: "72px 72px",
+            maskImage: "radial-gradient(ellipse 80% 60% at 50% 0%, black 30%, transparent 100%)",
+            pointerEvents: "none"
+          }} />
 
-        <FadeUp delay={0}>
-          <h1 style={{ fontSize: "clamp(3rem, 11vw, 8.5rem)", fontWeight: 800, lineHeight: 0.9, letterSpacing: "-0.045em", marginBottom: 36 }}>
-            Run code.<br />
-            <span style={{ color: "rgba(255,255,255,0.16)" }}>Trigger actions.</span><br />
-            Fetch data.
-          </h1>
-        </FadeUp>
+          <FadeUp delay={0}>
+            <h1 style={{ fontSize: "clamp(3rem, 11vw, 8.5rem)", fontWeight: 800, lineHeight: 0.9, letterSpacing: "-0.045em", marginBottom: 36 }}>
+              Run code.<br />
+              <span style={{ color: "rgba(255,255,255,0.16)" }}>Trigger actions.</span><br />
+              Fetch data.
+            </h1>
+          </FadeUp>
 
-        <FadeUp delay={100}>
-          <div className="hero-grid" style={{ display: "grid", gridTemplateColumns: "1fr", gap: "20px 60px", maxWidth: 860, marginBottom: 44 }}>
-            <p style={{ fontSize: "clamp(15px, 2.5vw, 18px)", lineHeight: 1.75, color: "rgba(255,255,255,0.46)", fontWeight: 300 }}>
-              A unified execution layer for autonomous agents and software systems. Pay per execution — no subscriptions, no infrastructure to own.
-            </p>
-            <p style={{ fontSize: "clamp(15px, 2.5vw, 18px)", lineHeight: 1.75, color: "rgba(255,255,255,0.46)", fontWeight: 300 }}>
-              One API call in. One structured result out. Retried, sandboxed, and settled automatically.
-            </p>
-          </div>
-        </FadeUp>
+          <FadeUp delay={100}>
+            <div className="hero-grid" style={{ display: "grid", gridTemplateColumns: "1fr", gap: "20px 60px", maxWidth: 860, marginBottom: 44 }}>
+              <p style={{ fontSize: "clamp(15px, 2.5vw, 18px)", lineHeight: 1.75, color: "rgba(255,255,255,0.72)", fontWeight: 300 }}>
+                A unified execution layer for autonomous agents and software systems. Pay per execution — no subscriptions, no infrastructure to own.
+              </p>
+              <p style={{ fontSize: "clamp(15px, 2.5vw, 18px)", lineHeight: 1.75, color: "rgba(255,255,255,0.72)", fontWeight: 300 }}>
+                One API call in. One structured result out. Retried, sandboxed, and settled automatically.
+              </p>
+            </div>
+          </FadeUp>
 
-        <FadeUp delay={180}>
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-            <a href="/auth" className="btn-primary">Generate API Key</a>
-            <a href="#how" className="btn-ghost">See how it works</a>
-          </div>
-        </FadeUp>
+          <FadeUp delay={180}>
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+              <a href="/auth" className="btn-primary">Generate API Key</a>
+              <a href="#how" className="btn-ghost">See how it works</a>
+            </div>
+          </FadeUp>
 
-        <FadeUp delay={260} style={{ marginTop: 72 }}>
-          <div className="stats-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px 24px", borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: 44 }}>
-            {[
-              { val: "<42ms", label: "Average latency" },
-              { val: "$0.003", label: "Per execution at scale" },
-              { val: "4 types", label: "One unified API" },
-              { val: "Zero", label: "Infrastructure overhead" },
-            ].map(({ val, label }) => (
-              <div key={label}>
-                <div style={{ fontSize: "clamp(1.8rem, 5vw, 2.6rem)", fontWeight: 800, letterSpacing: "-0.035em", marginBottom: 6 }}>{val}</div>
-                <div style={{ fontSize: "clamp(13px, 2vw, 15px)", color: "rgba(255,255,255,0.35)" }}>{label}</div>
-              </div>
-            ))}
-          </div>
-        </FadeUp>
+          <FadeUp delay={260} style={{ marginTop: 72 }}>
+            <div className="stats-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px 24px", borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: 44 }}>
+              {[
+                { val: "<42ms", label: "Average latency" },
+                { val: "$0.003", label: "Per execution at scale" },
+                { val: "4 types", label: "One unified API" },
+                { val: "Zero", label: "Infrastructure overhead" },
+              ].map(({ val, label }) => (
+                <div key={label}>
+                  <div style={{ fontSize: "clamp(1.8rem, 5vw, 2.6rem)", fontWeight: 800, letterSpacing: "-0.035em", marginBottom: 6 }}>{val}</div>
+                  <div style={{ fontSize: "clamp(13px, 2vw, 15px)", color: "rgba(255,255,255,0.55)" }}>{label}</div>
+                </div>
+              ))}
+            </div>
+          </FadeUp>
+        </div>
       </section>
 
       {/* ── IMAGE BREAK ── */}
@@ -155,7 +231,7 @@ export default function HomePage() {
             <img src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=1400&auto=format&fit=crop&q=80" alt="Server infrastructure" style={{ width: "100%", height: "clamp(200px, 40vw, 420px)", objectFit: "cover", display: "block", filter: "brightness(0.38) saturate(0.45)" }} />
             <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, rgba(8,8,9,0.6) 0%, transparent 50%, rgba(8,8,9,0.6) 100%)" }} />
             <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 24px" }}>
-              <p style={{ fontSize: "clamp(1.1rem, 3vw, 1.9rem)", fontWeight: 700, letterSpacing: "-0.03em", color: "rgba(255,255,255,0.7)", textAlign: "center", maxWidth: 560, lineHeight: 1.3 }}>
+              <p style={{ fontSize: "clamp(1.1rem, 3vw, 1.9rem)", fontWeight: 700, letterSpacing: "-0.03em", color: "rgba(255,255,255,0.85)", textAlign: "center", maxWidth: 560, lineHeight: 1.3 }}>
                 Infrastructure designed for machines, not monthly billing cycles.
               </p>
             </div>
@@ -169,7 +245,7 @@ export default function HomePage() {
           <FadeUp>
             <div>
               <h2 style={{ fontSize: "clamp(1.7rem, 4vw, 2.6rem)", fontWeight: 800, letterSpacing: "-0.035em", lineHeight: 1.1, marginBottom: 18 }}>Compute wasn't built for agents</h2>
-              <p style={{ fontSize: "clamp(14px, 2vw, 16px)", lineHeight: 1.8, color: "rgba(255,255,255,0.4)", fontWeight: 300 }}>Every major cloud was designed around human operators. Monthly plans, pre-provisioned servers, billing cycles that aggregate what you used last month.</p>
+              <p style={{ fontSize: "clamp(14px, 2vw, 16px)", lineHeight: 1.8, color: "rgba(255,255,255,0.65)", fontWeight: 300 }}>Every major cloud was designed around human operators. Monthly plans, pre-provisioned servers, billing cycles that aggregate what you used last month.</p>
             </div>
           </FadeUp>
           <div>
@@ -181,7 +257,7 @@ export default function HomePage() {
               <FadeUp key={title} delay={i * 80}>
                 <div style={{ paddingTop: 32, paddingBottom: 32, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
                   <h3 style={{ fontSize: "clamp(1rem, 2.2vw, 1.25rem)", fontWeight: 700, letterSpacing: "-0.02em", marginBottom: 12, lineHeight: 1.2 }}>{title}</h3>
-                  <p style={{ fontSize: "clamp(14px, 2vw, 16px)", lineHeight: 1.8, color: "rgba(255,255,255,0.4)", fontWeight: 300 }}>{body}</p>
+                  <p style={{ fontSize: "clamp(14px, 2vw, 16px)", lineHeight: 1.8, color: "rgba(255,255,255,0.65)", fontWeight: 300 }}>{body}</p>
                 </div>
               </FadeUp>
             ))}
@@ -195,14 +271,14 @@ export default function HomePage() {
           <FadeUp>
             <div className="sec-header" style={{ display: "flex", flexDirection: "column", gap: 16, marginBottom: 56 }}>
               <h2 style={{ fontSize: "clamp(1.7rem, 4vw, 2.6rem)", fontWeight: 800, letterSpacing: "-0.035em" }}>What Runix executes</h2>
-              <p style={{ fontSize: "clamp(14px, 2vw, 16px)", color: "rgba(255,255,255,0.32)", maxWidth: 300, lineHeight: 1.6 }}>Four execution types. One API. No configuration.</p>
+              <p style={{ fontSize: "clamp(14px, 2vw, 16px)", color: "rgba(255,255,255,0.55)", maxWidth: 300, lineHeight: 1.6 }}>Four execution types. One API. No configuration.</p>
             </div>
           </FadeUp>
           {CAPABILITIES.map((cap, i) => (
             <FadeUp key={cap.title} delay={i * 55}>
               <div className="cap-row" onMouseEnter={() => setHoveredCap(i)} onMouseLeave={() => setHoveredCap(null)}>
-                <h3 style={{ fontSize: "clamp(1rem, 2vw, 1.4rem)", fontWeight: 700, letterSpacing: "-0.025em", color: hoveredCap === i ? "#fff" : "rgba(255,255,255,0.65)", transition: "color 0.2s", paddingRight: 32, lineHeight: 1.2 }}>{cap.title}</h3>
-                <p style={{ fontSize: "clamp(14px, 1.8vw, 16px)", lineHeight: 1.8, color: "rgba(255,255,255,0.37)", fontWeight: 300 }}>{cap.desc}</p>
+                <h3 style={{ fontSize: "clamp(1rem, 2vw, 1.4rem)", fontWeight: 700, letterSpacing: "-0.025em", color: hoveredCap === i ? "#fff" : "rgba(255,255,255,0.75)", transition: "color 0.2s", paddingRight: 32, lineHeight: 1.2 }}>{cap.title}</h3>
+                <p style={{ fontSize: "clamp(14px, 1.8vw, 16px)", lineHeight: 1.8, color: "rgba(255,255,255,0.65)", fontWeight: 300 }}>{cap.desc}</p>
               </div>
             </FadeUp>
           ))}
@@ -227,7 +303,7 @@ export default function HomePage() {
                     <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, fontWeight: 500, color: "rgba(139,92,246,0.55)", paddingTop: 3, flexShrink: 0 }}>{n}</span>
                     <div>
                       <div style={{ fontSize: "clamp(0.95rem, 2vw, 1.1rem)", fontWeight: 700, letterSpacing: "-0.02em", marginBottom: 10 }}>{title}</div>
-                      <div style={{ fontSize: "clamp(13px, 1.8vw, 15px)", lineHeight: 1.8, color: "rgba(255,255,255,0.4)", fontWeight: 300 }}>{body}</div>
+                      <div style={{ fontSize: "clamp(13px, 1.8vw, 15px)", lineHeight: 1.8, color: "rgba(255,255,255,0.65)", fontWeight: 300 }}>{body}</div>
                     </div>
                   </div>
                 </div>
@@ -258,29 +334,35 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── USE CASES ── */}
+      {/* ── USE CASES ── (COMPLETELY NEW LAYOUT) */}
       <section className="sec-alt sec-divider">
         <div className="sec">
           <FadeUp>
             <div className="sec-header" style={{ display: "flex", flexDirection: "column", gap: 16, marginBottom: 56 }}>
               <h2 style={{ fontSize: "clamp(1.7rem, 4vw, 2.6rem)", fontWeight: 800, letterSpacing: "-0.035em" }}>Built for systems that never stop</h2>
-              <p style={{ fontSize: "clamp(14px, 2vw, 16px)", color: "rgba(255,255,255,0.32)", maxWidth: 260, lineHeight: 1.6 }}>The highest-demand workloads, least served by conventional platforms.</p>
+              <p style={{ fontSize: "clamp(14px, 2vw, 16px)", color: "rgba(255,255,255,0.7)", maxWidth: 300, lineHeight: 1.5 }}>
+                The highest‑demand workloads, least served by conventional platforms.
+              </p>
             </div>
           </FadeUp>
-          {[
-            { industry: "Financial Services", title: "Real-time risk computation per market event", body: "Algorithmic trading systems need computation on every signal. Runix lets risk models execute per event, paying only for each computation." },
-            { industry: "AI Agents", title: "Autonomous agents that pay per action", body: "AI agents call compute, APIs, and data as part of their decision loop. Each action is independently executed, sandboxed, and settled." },
-            { industry: "Developer Tooling", title: "Code analysis that scales with activity", body: "CI/CD tools have bursty, unpredictable workloads. Execute analysis jobs only when triggered — no idle infrastructure to pay for." },
-            { industry: "Data Platforms", title: "Per-query billing that mirrors actual value", body: "Data products that charge per query can now execute and settle payment in one step. Cost aligns exactly with consumption." },
-          ].map(({ industry, title, body }, i) => (
-            <FadeUp key={industry} delay={i * 70}>
-              <div className="use-item">
-                <div style={{ fontSize: "clamp(11px, 1.5vw, 13px)", fontWeight: 600, letterSpacing: "0.04em", color: "rgba(139,92,246,0.65)" }}>{industry}</div>
-                <h3 style={{ fontSize: "clamp(0.95rem, 2vw, 1.15rem)", fontWeight: 700, letterSpacing: "-0.02em", lineHeight: 1.3 }}>{title}</h3>
-                <p style={{ fontSize: "clamp(13px, 1.8vw, 15px)", lineHeight: 1.8, color: "rgba(255,255,255,0.37)", fontWeight: 300 }}>{body}</p>
-              </div>
-            </FadeUp>
-          ))}
+          <div className="usecase-grid">
+            {[
+              { industry: "Financial Services", title: "Real-time risk computation per market event", body: "Algorithmic trading systems need computation on every signal. Runix lets risk models execute per event, paying only for each computation." },
+              { industry: "AI Agents", title: "Autonomous agents that pay per action", body: "AI agents call compute, APIs, and data as part of their decision loop. Each action is independently executed, sandboxed, and settled." },
+              { industry: "Developer Tooling", title: "Code analysis that scales with activity", body: "CI/CD tools have bursty, unpredictable workloads. Execute analysis jobs only when triggered — no idle infrastructure to pay for." },
+              { industry: "Data Platforms", title: "Per-query billing that mirrors actual value", body: "Data products that charge per query can now execute and settle payment in one step. Cost aligns exactly with consumption." },
+              { industry: "Edge Computing", title: "Low‑latency inference at the edge", body: "Run models and processing near your users. Each execution is sandboxed and billed per request – no cold starts or idle servers." },
+              { industry: "Web3 & DeFi", title: "On‑chain compute without nodes", body: "Execute off‑chain logic that feeds into smart contracts. Pay only for each verification or data fetch, not for maintaining nodes." },
+            ].map((item, i) => (
+              <FadeUp key={item.industry} delay={i * 50}>
+                <div className="usecase-card">
+                  <div className="usecase-badge">{item.industry}</div>
+                  <h3 className="usecase-title">{item.title}</h3>
+                  <p className="usecase-desc">{item.body}</p>
+                </div>
+              </FadeUp>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -289,7 +371,7 @@ export default function HomePage() {
         <FadeUp>
           <div className="sec-header" style={{ display: "flex", flexDirection: "column", gap: 16, marginBottom: 56 }}>
             <h2 style={{ fontSize: "clamp(1.7rem, 4vw, 2.6rem)", fontWeight: 800, letterSpacing: "-0.035em" }}>Built for agent workloads</h2>
-            <p style={{ fontSize: "clamp(14px, 2vw, 16px)", color: "rgba(255,255,255,0.32)", maxWidth: 300, lineHeight: 1.6 }}>Most execution tools are wrappers. Runix is infrastructure.</p>
+            <p style={{ fontSize: "clamp(14px, 2vw, 16px)", color: "rgba(255,255,255,0.6)", maxWidth: 300, lineHeight: 1.6 }}>Most execution tools are wrappers. Runix is infrastructure.</p>
           </div>
         </FadeUp>
         <div className="why-grid" style={{ display: "grid", gridTemplateColumns: "1fr", gap: "0 64px" }}>
@@ -305,8 +387,8 @@ export default function HomePage() {
               <div className="why-item">
                 <div className="why-dot" />
                 <div>
-                  <div style={{ fontSize: "clamp(0.95rem, 1.8vw, 1.05rem)", fontWeight: 700, letterSpacing: "-0.02em", marginBottom: 7 }}>{title}</div>
-                  <div style={{ fontSize: "clamp(13px, 1.8vw, 15px)", lineHeight: 1.75, color: "rgba(255,255,255,0.37)", fontWeight: 300 }}>{desc}</div>
+                  <div style={{ fontSize: "clamp(0.95rem, 1.8vw, 1.05rem)", fontWeight: 700, letterSpacing: "-0.02em", marginBottom: 7, color: "rgba(255,255,255,0.9)" }}>{title}</div>
+                  <div style={{ fontSize: "clamp(13px, 1.8vw, 15px)", lineHeight: 1.75, color: "rgba(255,255,255,0.65)", fontWeight: 300 }}>{desc}</div>
                 </div>
               </div>
             </FadeUp>
@@ -323,7 +405,7 @@ export default function HomePage() {
                 First request<br />
                 <span style={{ color: "rgba(255,255,255,0.14)" }}>in 2 minutes.</span>
               </h2>
-              <p style={{ fontSize: "clamp(15px, 2.5vw, 18px)", lineHeight: 1.75, maxWidth: 440, marginBottom: 40, color: "rgba(255,255,255,0.42)", fontWeight: 300 }}>
+              <p style={{ fontSize: "clamp(15px, 2.5vw, 18px)", lineHeight: 1.75, maxWidth: 440, marginBottom: 40, color: "rgba(255,255,255,0.7)", fontWeight: 300 }}>
                 Generate an API key and send your first execution. No card required, no setup calls, no infrastructure to provision.
               </p>
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
