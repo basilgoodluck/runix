@@ -1,6 +1,6 @@
 #!/bin/sh
 set -e
 
-npx prisma migrate deploy --schema=./prisma/schema.prisma
+npx prisma db push --skip-generate
 
 node dist/engine/server.js
