@@ -8,11 +8,13 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  name      String
-  apiKey    String   @unique
-  createdAt DateTime @default(now())
+  id            String         @id @default(uuid())
+  email         String         @unique
+  name          String
+  picture       String         @default("")
+  createdAt     DateTime       @default(now())
+  agents        Agent[]
+  refreshTokens RefreshToken[]
 }
 
 model Agent {
@@ -24,16 +26,27 @@ model Agent {
   txHash         String?
   metadataUri    String
   createdAt      DateTime @default(now())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id])
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  expiresAt DateTime
+  createdAt DateTime @default(now())
 }
 
 model Job {
-  id        String   @id
-  agentId   String
-  type      String
-  status    String
-  costUsd   Float?
+  id         String   @id
+  agentId    String
+  type       String
+  status     String
+  costUsd    Float?
   durationMs Int
-  createdAt DateTime @default(now())
+  createdAt  DateTime @default(now())
 }
 
 model Payment {
