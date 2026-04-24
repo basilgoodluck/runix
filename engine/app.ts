@@ -6,7 +6,6 @@ import rateLimit from "express-rate-limit";
 import { randomUUID } from "crypto";
 
 import { executeRouter } from "./routes/execute.route";
-import { agentRouter } from "./routes/agent.route";
 import { billingRouter } from "./routes/billing.route";
 import authRouter from "./routes/auth.route";
 
@@ -111,7 +110,6 @@ async function apiKeyMiddleware(req: Request, res: Response, next: NextFunction)
 // ─────────────────────────────
 
 app.use("/api/execute", apiKeyMiddleware, executeRouter);
-app.use("/api/agents", apiKeyMiddleware, agentRouter);
 app.use("/api/billing", apiKeyMiddleware, billingRouter);
 
 // ─────────────────────────────
