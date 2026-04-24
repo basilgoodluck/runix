@@ -50,9 +50,9 @@ const C = {
   bg: "#080809",
   surface: "rgba(255,255,255,0.02)",
   border: "rgba(255,255,255,0.07)",
-  text: "rgba(255,255,255,0.55)",
-  textMuted: "rgba(255,255,255,0.32)",
-  textDim: "rgba(255,255,255,0.16)",
+  text: "rgba(255,255,255,0.75)",      // much brighter
+  textMuted: "rgba(255,255,255,0.55)", // previously 0.32
+  textDim: "rgba(255,255,255,0.3)",    // previously 0.16
   white: "#fff",
   codeBg: "#0a0b0c",
   codeBar: "#0d0d0f",
@@ -98,12 +98,12 @@ function Callout({ children, type }: { children: React.ReactNode; type: "info" |
 }
 
 function IC({ children }: { children: string }) {
-  return <code style={{ fontSize: 13, fontFamily: "monospace", background: "rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.8)", padding: "2px 6px", borderRadius: 5, border: "1px solid rgba(255,255,255,0.08)" }}>{children}</code>;
+  return <code style={{ fontSize: 13, fontFamily: "monospace", background: "rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.85)", padding: "2px 6px", borderRadius: 5, border: "1px solid rgba(255,255,255,0.08)" }}>{children}</code>;
 }
 
 function Badge({ label, color }: { label: string; color: "purple" | "green" | "orange" | "red" }) {
   const map = {
-    purple: { bg: C.purpleFaint, color: "rgba(167,139,250,0.9)", border: C.purpleBorder },
+    purple: { bg: C.purpleFaint, color: "rgba(167,139,250,0.95)", border: C.purpleBorder },
     green:  { bg: "rgba(16,185,129,0.1)", color: "#6ee7b7", border: "rgba(16,185,129,0.2)" },
     orange: { bg: "rgba(245,158,11,0.1)", color: "#fcd34d", border: "rgba(245,158,11,0.2)" },
     red:    { bg: "rgba(239,68,68,0.1)",  color: "#fca5a5", border: "rgba(239,68,68,0.2)" },
@@ -119,12 +119,12 @@ function P({ children }: { children: React.ReactNode }) {
   return <p style={{ fontSize: "clamp(14px, 2vw, 16px)", color: C.text, lineHeight: 1.9, marginBottom: 16 }}>{children}</p>;
 }
 
+// Removed AI marker (▸) – using standard disc bullet
 function UL({ items }: { items: string[] }) {
   return (
-    <ul style={{ paddingLeft: 0, marginBottom: 18, listStyle: "none" }}>
+    <ul style={{ paddingLeft: "1.2rem", marginBottom: 18, listStyle: "disc" }}>
       {items.map(s => (
-        <li key={s} style={{ fontSize: "clamp(14px, 2vw, 16px)", color: C.text, lineHeight: 1.85, marginBottom: 8, paddingLeft: 20, position: "relative" }}>
-          <span style={{ position: "absolute", left: 0, color: C.purpleLight, fontSize: 11, top: 6 }}>▸</span>
+        <li key={s} style={{ fontSize: "clamp(14px, 2vw, 16px)", color: C.text, lineHeight: 1.85, marginBottom: 8 }}>
           {s}
         </li>
       ))}
@@ -134,10 +134,9 @@ function UL({ items }: { items: string[] }) {
 
 function OL({ items }: { items: string[] }) {
   return (
-    <ol style={{ paddingLeft: 0, marginBottom: 18, listStyle: "none" }}>
+    <ol style={{ paddingLeft: "1.2rem", marginBottom: 18 }}>
       {items.map((s, i) => (
-        <li key={s} style={{ fontSize: "clamp(14px, 2vw, 16px)", color: C.text, lineHeight: 1.85, marginBottom: 8, paddingLeft: 26, position: "relative" }}>
-          <span style={{ position: "absolute", left: 0, color: C.purpleLight, fontSize: 13, fontWeight: 700 }}>{i + 1}.</span>
+        <li key={s} style={{ fontSize: "clamp(14px, 2vw, 16px)", color: C.text, lineHeight: 1.85, marginBottom: 8 }}>
           {s}
         </li>
       ))}
@@ -179,13 +178,13 @@ const SECTIONS: Record<string, { title: string; headings: string[]; content: Rea
     title: "Introduction",
     headings: ["How it works", "When to use it"],
     content: (<>
-      <P>Runix is a machine-to-machine execution engine. Agents register an identity on the Arc blockchain, receive a Circle-managed USDC wallet, and submit jobs over HTTP — paying per execution in USDC with no subscriptions and no pre-provisioned infrastructure.</P>
-      <P>Think of it as AWS Lambda without the deployment step, with crypto-native payments and on-chain agent identity built in.</P>
+      <P>Runix is a machine‑to‑machine execution engine. Agents register an identity on the Arc blockchain, receive a Circle‑managed USDC wallet, and submit jobs over HTTP — paying per execution in USDC with no subscriptions and no pre‑provisioned infrastructure.</P>
+      <P>Think of it as AWS Lambda without the deployment step, with crypto‑native payments and on‑chain identity built in.</P>
       <H2 id="how-it-works">How it works</H2>
-      <OL items={["Register — call POST /api/agents/register. You get an API key and wallet address.", "Fund — deposit USDC to your agent wallet on Arc Testnet.", "Execute — submit jobs via SDK or HTTP. Runix sandboxes, runs, and returns a signed result.", "Pay — USDC is deducted from your wallet per execution."]} />
-      <Callout type="info">Execution receipts are Ed25519-signed with SHA-256 hashed inputs and outputs — every result is cryptographically auditable.</Callout>
+      <OL items={["Register — call POST /api/agents/register. You get an API key and wallet address.", "Fund — deposit USDC to your wallet on Arc Testnet.", "Execute — submit jobs via SDK or HTTP. Runix sandboxes, runs, and returns a signed result.", "Pay — USDC is deducted from your wallet per execution."]} />
+      <Callout type="info">Execution receipts are Ed25519‑signed with SHA‑256 hashed inputs and outputs — every result is cryptographically auditable.</Callout>
       <H2 id="when-to-use-it">When to use it</H2>
-      <UL items={["Autonomous AI agents that need to run code or call APIs inside a decision loop", "Event-driven systems with bursty, unpredictable compute needs", "Machine-to-machine value exchange without human billing", "On-chain agent identity and reputation with verifiable execution history"]} />
+      <UL items={["Autonomous agents that need to run code or call APIs inside a decision loop", "Event‑driven systems with bursty, unpredictable compute needs", "Machine‑to‑machine value exchange without human billing", "On‑chain identity and verifiable execution history"]} />
     </>),
   },
   installation: {
@@ -197,14 +196,14 @@ const SECTIONS: Record<string, { title: string; headings: string[]; content: Rea
       <CodeBlock lang="bash">{`npm install @runix/sdk\n# or\nyarn add @runix/sdk`}</CodeBlock>
       <Callout type="tip">Full TypeScript types included. No extra @types package needed. ESM and CJS both supported.</Callout>
       <H2 id="requirements">Requirements</H2>
-      <UL items={["Node.js 18+", "A Runix API key — see Authentication", "USDC on Arc Testnet in your agent wallet"]} />
+      <UL items={["Node.js 18+", "A Runix API key — see Authentication", "USDC on Arc Testnet in your wallet"]} />
     </>),
   },
   authentication: {
     title: "Authentication",
     headings: ["Register your agent", "Using your key"],
     content: (<>
-      <P>Runix uses API keys tied to on-chain agent identities. Registration is once — it creates your API key and Circle wallet at the same time.</P>
+      <P>Runix uses API keys tied to on‑chain identities. Registration creates your API key and Circle wallet at the same time.</P>
       <H2 id="register-your-agent">Register your agent</H2>
       <CodeBlock lang="ts">{`import { RunixClient } from "@runix/sdk";\n\nconst { apiKey, walletAddress, agentId } = await RunixClient.register({\n  name: "my-agent",\n});\n\nconsole.log(apiKey);        // rk_live_...\nconsole.log(walletAddress); // 0x...`}</CodeBlock>
       <Callout type="warning">Never commit your API key to source control. Use environment variables.</Callout>
@@ -224,7 +223,7 @@ const SECTIONS: Record<string, { title: string; headings: string[]; content: Rea
       <P>Send testnet USDC to your <IC>walletAddress</IC> on Arc Testnet using the Arc faucet or Circle Gateway.</P>
       <H2 id="run-your-first-job">3. Run your first job</H2>
       <CodeBlock lang="ts">{`const runix = new RunixClient({ apiKey });\n\nconst result = await runix.compute({\n  runtime: "python",\n  code: "print(21 * 2)",\n});\n\nconsole.log(result.stdout);      // "42"\nconsole.log(result.duration_ms); // e.g. 38\nconsole.log(result.cost_usd);    // e.g. 0.000003`}</CodeBlock>
-      <Callout type="tip">Check result.status before reading result.stdout. "error" means the code ran but exited non-zero.</Callout>
+      <Callout type="tip">Check result.status before reading result.stdout. "error" means the code ran but exited non‑zero.</Callout>
     </>),
   },
   "sdk-overview": {
@@ -244,7 +243,7 @@ const SECTIONS: Record<string, { title: string; headings: string[]; content: Rea
     title: "runix.compute()",
     headings: ["Parameters", "Example"],
     content: (<>
-      <P>Run arbitrary code in an isolated Docker sandbox. Memory-capped, CPU-capped, no network access, read-only filesystem.</P>
+      <P>Run arbitrary code in an isolated Docker sandbox. Memory‑capped, CPU‑capped, no network access, read‑only filesystem.</P>
       <H2 id="parameters">Parameters</H2>
       <ParamTable rows={[{ name: "runtime", type: "Runtime", req: true, desc: '"python" | "node" | "go"' }, { name: "code", type: "string", req: true, desc: "Source code to execute" }, { name: "stdin", type: "string", req: false, desc: "Input piped to stdin" }, { name: "timeout_ms", type: "number", req: false, desc: "Max execution time. Default: 10000" }, { name: "env", type: "Record<string,string>", req: false, desc: "Environment variables injected into the sandbox" }]} />
       <H2 id="example">Example</H2>
@@ -257,7 +256,7 @@ const SECTIONS: Record<string, { title: string; headings: string[]; content: Rea
     content: (<>
       <P>Call any external HTTP service through Runix. Handles retries on 5xx and timeout enforcement.</P>
       <H2 id="parameters">Parameters</H2>
-      <ParamTable rows={[{ name: "url", type: "string", req: true, desc: "Full URL of the service to call" }, { name: "method", type: "string", req: false, desc: '"GET" | "POST" | "PUT" | "DELETE". Default: "GET"' }, { name: "headers", type: "Record<string,string>", req: false, desc: "Request headers" }, { name: "body", type: "unknown", req: false, desc: "Request body — auto-serialized to JSON" }, { name: "retries", type: "number", req: false, desc: "Retry count on 5xx. Default: 2" }]} />
+      <ParamTable rows={[{ name: "url", type: "string", req: true, desc: "Full URL of the service to call" }, { name: "method", type: "string", req: false, desc: '"GET" | "POST" | "PUT" | "DELETE". Default: "GET"' }, { name: "headers", type: "Record<string,string>", req: false, desc: "Request headers" }, { name: "body", type: "unknown", req: false, desc: "Request body — auto‑serialized to JSON" }, { name: "retries", type: "number", req: false, desc: "Retry count on 5xx. Default: 2" }]} />
       <H2 id="example">Example</H2>
       <CodeBlock lang="ts">{`const result = await runix.action({\n  url: "https://api.example.com/data",\n  method: "GET",\n  headers: { Authorization: \`Bearer \${token}\` },\n});\n\nconst data = JSON.parse(result.stdout);`}</CodeBlock>
     </>),
@@ -268,7 +267,7 @@ const SECTIONS: Record<string, { title: string; headings: string[]; content: Rea
     content: (<>
       <P>Fetch and parse structured data sources. Results come back ready to use.</P>
       <H2 id="parameters">Parameters</H2>
-      <ParamTable rows={[{ name: "source", type: "string", req: true, desc: "URL or data source identifier" }, { name: "format", type: "string", req: false, desc: '"json" | "csv" | "xml" — auto-detected if omitted' }, { name: "query", type: "string", req: false, desc: "JSONPath filter applied to the result" }]} />
+      <ParamTable rows={[{ name: "source", type: "string", req: true, desc: "URL or data source identifier" }, { name: "format", type: "string", req: false, desc: '"json" | "csv" | "xml" — auto‑detected if omitted' }, { name: "query", type: "string", req: false, desc: "JSONPath filter applied to the result" }]} />
       <H2 id="example">Example</H2>
       <CodeBlock lang="ts">{`const result = await runix.data({\n  source: "https://data.example.com/market.json",\n  format: "json",\n  query: "$.assets[?(@.symbol == 'USDC')]",\n});\n\nconst asset = JSON.parse(result.stdout);`}</CodeBlock>
     </>),
@@ -299,7 +298,7 @@ const SECTIONS: Record<string, { title: string; headings: string[]; content: Rea
     title: "runix.stream()",
     headings: ["Event shape", "Example"],
     content: (<>
-      <P>Stream compute output in real time via Server-Sent Events. Same parameters as <IC>runix.compute()</IC>.</P>
+      <P>Stream compute output in real time via Server‑Sent Events. Same parameters as <IC>runix.compute()</IC>.</P>
       <H2 id="event-shape">Event shape</H2>
       <CodeBlock lang="ts">{`type StreamEvent =\n  | { type: "stdout";  data: string }\n  | { type: "stderr";  data: string }\n  | { type: "done";    id: string; duration_ms: number; cost_usd: number }\n  | { type: "error";   message: string };`}</CodeBlock>
       <H2 id="example">Example</H2>
@@ -310,14 +309,14 @@ const SECTIONS: Record<string, { title: string; headings: string[]; content: Rea
     title: "POST /agents/register",
     headings: ["Request body", "Response", "Example"],
     content: (<>
-      <P>Register a new agent. Creates a Circle USDC wallet and registers on-chain via ERC-8004. No API key required.</P>
+      <P>Register a new agent. Creates a Circle USDC wallet and registers on‑chain via ERC‑8004. No API key required.</P>
       <div style={{ display: "flex", gap: 8, marginBottom: 18, flexWrap: "wrap" }}>
         <Badge label="POST" color="purple" />
         <Badge label="Public — no auth required" color="orange" />
       </div>
       <CodeBlock lang="bash">{`POST https://runix.basilgoodluck.com/api/agents/register`}</CodeBlock>
       <H2 id="request-body">Request body</H2>
-      <ParamTable rows={[{ name: "name", type: "string", req: true, desc: "Human-readable agent name — stored on-chain" }, { name: "metadata_uri", type: "string", req: false, desc: "IPFS URI pointing to agent metadata JSON" }]} />
+      <ParamTable rows={[{ name: "name", type: "string", req: true, desc: "Human‑readable agent name — stored on‑chain" }, { name: "metadata_uri", type: "string", req: false, desc: "IPFS URI pointing to agent metadata JSON" }]} />
       <H2 id="response">Response</H2>
       <CodeBlock lang="json">{`{\n  "api_key": "rk_live_abc123...",\n  "wallet_address": "0xabc...",\n  "agent_id": "0x...",\n  "registration_tx": "0x..."\n}`}</CodeBlock>
       <Callout type="warning">Store your api_key immediately — it is only returned once.</Callout>
@@ -349,7 +348,7 @@ const SECTIONS: Record<string, { title: string; headings: string[]; content: Rea
     title: "POST /execute/stream",
     headings: ["SSE event format", "Example"],
     content: (<>
-      <P>Stream compute output via Server-Sent Events. Only supports <IC>type: "compute"</IC>.</P>
+      <P>Stream compute output via Server‑Sent Events. Only supports <IC>type: "compute"</IC>.</P>
       <div style={{ display: "flex", gap: 8, marginBottom: 18, flexWrap: "wrap" }}>
         <Badge label="POST" color="purple" />
         <Badge label="Requires API key" color="red" />
@@ -365,7 +364,7 @@ const SECTIONS: Record<string, { title: string; headings: string[]; content: Rea
     title: "GET /billing/balance",
     headings: ["Response", "Example"],
     content: (<>
-      <P>Returns the current USDC balance of your agent's Circle wallet on Arc Testnet.</P>
+      <P>Returns the current USDC balance of your Circle wallet on Arc Testnet.</P>
       <div style={{ display: "flex", gap: 8, marginBottom: 18 }}>
         <Badge label="GET" color="green" />
         <Badge label="Requires API key" color="red" />
@@ -402,7 +401,7 @@ const SECTIONS: Record<string, { title: string; headings: string[]; content: Rea
           </tbody>
         </table>
       </div>
-      <Callout type="warning">A 200 OK with status: "error" means the code ran but exited non-zero — different from a 4xx/5xx HTTP error.</Callout>
+      <Callout type="warning">A 200 OK with status: "error" means the code ran but exited non‑zero — different from a 4xx/5xx HTTP error.</Callout>
     </>),
   },
   "guide-agents": {
@@ -413,16 +412,16 @@ const SECTIONS: Record<string, { title: string; headings: string[]; content: Rea
       <H2 id="decision-loop-pattern">Decision loop pattern</H2>
       <CodeBlock lang="ts">{`const runix = new RunixClient({ apiKey: process.env.RUNIX_API_KEY });\n\nasync function agentLoop(task: string) {\n  while (true) {\n    const action = await llm.decide(task);\n    if (action.type === "done") break;\n\n    const result = await runix.compute({\n      runtime: action.runtime,\n      code: action.code,\n      timeout_ms: 15_000,\n    });\n\n    if (result.status === "error") {\n      task = \`Previous step failed: \${result.stderr}. Retry.\`;\n      continue;\n    }\n\n    task = incorporateResult(task, result.stdout);\n  }\n}`}</CodeBlock>
       <H2 id="best-practices">Best practices</H2>
-      <UL items={["Store result.id — you can look up any past execution for auditing", "Set timeout_ms explicitly in production — don't rely on the default", "Use runix.batch() when your agent needs multiple independent results at once", "Check result.cached — repeated identical calls return instantly at no cost", "Monitor result.cost_usd per step to track agent spend in real time"]} />
+      <UL items={["Store result.id — you can look up any past execution for auditing", "Set timeout_ms explicitly in production — don't rely on the default", "Use runix.batch() when your agent needs multiple independent results at once", "Check result.cached — repeated identical calls return instantly at no cost", "Monitor result.cost_usd per step to track spend in real time"]} />
     </>),
   },
   "guide-sandbox": {
     title: "Sandbox & Security",
     headings: ["Docker isolation", "What code cannot do"],
     content: (<>
-      <P>Every compute, stateful, and file job runs inside a Docker container with strict isolation, with a pre-warmed pool per language runtime.</P>
+      <P>Every compute, stateful, and file job runs inside a Docker container with strict isolation, with a pre‑warmed pool per language runtime.</P>
       <H2 id="docker-isolation">Docker isolation</H2>
-      <UL items={["Read-only root filesystem", "No network access from inside the container", "All Linux capabilities dropped", "PidsLimit enforced to prevent fork bombs", "Containers discarded after each job — no state leaks", "Memory and CPU caps enforced by Docker cgroup"]} />
+      <UL items={["Read‑only root filesystem", "No network access from inside the container", "All Linux capabilities dropped", "PidsLimit enforced to prevent fork bombs", "Containers discarded after each job — no state leaks", "Memory and CPU caps enforced by Docker cgroup"]} />
       <Callout type="info">Container pools replenish automatically after each job. Under high concurrency, jobs queue in BullMQ until a container is available.</Callout>
       <H2 id="what-code-cannot-do">What code cannot do</H2>
       <UL items={["Make outbound network requests — use runix.action() instead", "Access the host filesystem", "Spawn privileged processes", "Persist files between separate compute jobs — use runix.stateful() or runix.file()"]} />
@@ -432,9 +431,9 @@ const SECTIONS: Record<string, { title: string; headings: string[]; content: Rea
     title: "Billing & USDC",
     headings: ["How billing works", "Pricing", "Funding your wallet"],
     content: (<>
-      <P>Runix charges per execution in USDC on Arc Testnet. Payment deducts from your Circle-managed wallet immediately after each successful job.</P>
+      <P>Runix charges per execution in USDC on Arc Testnet. Payment deducts from your Circle‑managed wallet immediately after each successful job.</P>
       <H2 id="how-billing-works">How billing works</H2>
-      <OL items={["Your agent wallet holds a USDC balance on Arc Testnet", "After each execution, Runix calculates cost via pricing.service.ts", "A Circle SDK transfer deducts from your wallet to the Runix system wallet", "The amount appears in result.cost_usd and in your billing history"]} />
+      <OL items={["Your wallet holds a USDC balance on Arc Testnet", "After each execution, Runix calculates cost via pricing.service.ts", "A Circle SDK transfer deducts from your wallet to the Runix system wallet", "The amount appears in result.cost_usd and in your billing history"]} />
       <Callout type="info">Payment failures are currently silent — jobs succeed even if the deduction fails. This changes before mainnet.</Callout>
       <H2 id="pricing">Pricing</H2>
       <div style={{ overflowX: "auto", margin: "18px 0", borderRadius: 10, border: `1px solid ${C.border}`, background: C.surface }}>
