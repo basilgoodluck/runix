@@ -70,7 +70,7 @@ authRouter.post(
             walletId: created.walletId,
             walletAddress: created.walletAddress,
             onchainAgentId: created.onchainAgentId ?? null,
-            txHash: created.txHash,
+            txHash: created.txHash ?? "",
             metadataUri: created.metadataUri,
             userId: user.id,
             createdAt: new Date(),
