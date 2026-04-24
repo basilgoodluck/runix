@@ -7,31 +7,12 @@ import { ValidationError } from "@/lib/error";
 import { generateJobId, clamp } from "../lib/utils";
 import { config } from "../config";
 import logger from "../lib/logger";
-import { getAgentByApiKey, ensureOnchainRegistration } from "@/agents/agent.service";
+import { requireOnchain } from "@/middleware/onchain.middleware";
 
 export const executeRouter = Router();
 
-async function checkOnchain(apiKey: string | undefined, res: Response): Promise<boolean> {
-  if (!apiKey) return true;
-  const agent = await getAgentByApiKey(apiKey);
-  if (!agent) return true;
-  try {
-    await ensureOnchainRegistration(agent.agentId);
-    return true;
-  } catch (err: any) {
-    if (err.message === "INSUFFICIENT_BALANCE") {
-      res.status(402).json({
-        error: "Insufficient balance. Fund your wallet to execute jobs.",
-        walletAddress: err.walletAddress,
-      });
-      return false;
-    }
-    throw err;
-  }
-}
-
 // ── Standard execution ────────────────────────────────────────────────────────
-executeRouter.post("/execute", async (req: Request, res: Response, next: NextFunction) => {
+executeRouter.post("/execute", requireOnchain, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { type, timeoutMs, ...rest } = req.body;
 
@@ -40,9 +21,6 @@ executeRouter.post("/execute", async (req: Request, res: Response, next: NextFun
         `Invalid or missing job type. Must be one of: ${Object.values(JobType).join(", ")}`
       );
     }
-
-    const apiKey = (req as any).agentApiKey as string | undefined;
-    if (!await checkOnchain(apiKey, res)) return;
 
     const job: Job = {
       id: generateJobId(),
@@ -57,7 +35,9 @@ executeRouter.post("/execute", async (req: Request, res: Response, next: NextFun
 
     logger.info(`Received job [${job.id}] type=${job.type}`);
 
+    const apiKey = (req as any).agentApiKey as string | undefined;
     const result = await enqueueJob(job, apiKey);
+
     return res.status(200).json(result);
   } catch (err) {
     next(err);
@@ -65,16 +45,13 @@ executeRouter.post("/execute", async (req: Request, res: Response, next: NextFun
 });
 
 // ── Streaming execution (compute only, SSE) ───────────────────────────────────
-executeRouter.post("/execute/stream", async (req: Request, res: Response, next: NextFunction) => {
+executeRouter.post("/execute/stream", requireOnchain, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { runtime, code, stdin, timeoutMs } = req.body;
 
     if (!runtime || !code) {
       throw new ValidationError("runtime and code are required for streaming execution");
     }
-
-    const apiKey = (req as any).agentApiKey as string | undefined;
-    if (!await checkOnchain(apiKey, res)) return;
 
     const job: ComputeJob = {
       id: generateJobId(),
