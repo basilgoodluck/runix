@@ -52,12 +52,10 @@ app.use(globalLimiter);
 app.use("/api/execute", executionLimiter);
 
 app.use((req: Request, res: Response, next: NextFunction) => {
+  if (req.method === "OPTIONS" || req.method === "GET" || req.method === "HEAD") return next();
+  
   const contentType = req.headers["content-type"] ?? "";
-  if (
-    req.method !== "GET" &&
-    req.method !== "HEAD" &&
-    !contentType.startsWith("application/json")
-  ) {
+  if (!contentType.startsWith("application/json")) {
     res.status(415).json({ error: "Unsupported Media Type: use application/json" });
     return;
   }
