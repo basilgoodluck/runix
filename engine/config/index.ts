@@ -12,6 +12,11 @@ export const config = {
     clientId: process.env.GOOGLE_CLIENT_ID ?? "",
   },
 
+  jwt: {
+    accessSecret: process.env.JWT_ACCESS_SECRET ?? "",
+    refreshSecret: process.env.JWT_REFRESH_SECRET ?? "",
+  },
+
   redis: {
     host: process.env.REDIS_HOST ?? "127.0.0.1",
     port: parseInt(process.env.REDIS_PORT ?? "6379", 10),

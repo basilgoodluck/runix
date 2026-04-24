@@ -1,4 +1,10 @@
-import RunixClient from "@runix/sdk";
+import RunixClient from "@basilgoodluck/runix-sdk";
+
+declare const process: {
+  env: {
+    RUNIX_API_KEY?: string;
+  };
+};
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
