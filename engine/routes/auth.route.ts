@@ -3,7 +3,7 @@ import type { Request, Response, NextFunction } from "express";
 import { OAuth2Client } from "google-auth-library";
 import { prisma } from "@/prisma/prisma";
 import { config } from "@/config";
-import { registerAgent } from "@/agents/agent.service";
+import { provisionAgent } from "@/agents/agent.service";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 
@@ -53,7 +53,7 @@ authRouter.post(
       // ─── Upsert user ───────────────────────────────────────────
 
       const user = await prisma.user.upsert({
-        where: { email },
+        where: { email }, 
         update: {},
         create: { email, name, picture },
       });
@@ -65,7 +65,7 @@ authRouter.post(
       });
 
       if (!agent) {
-        const created = await registerAgent("google-auth");
+        const created = await provisionAgent("google-auth", user.id);
 
         agent = await prisma.agent.create({
           data: {

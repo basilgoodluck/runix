@@ -27,4 +27,4 @@ jobs:
             git fetch origin
             git reset --hard origin/main
             docker compose pull
-            docker compose up -d --force-recreate --remove-orphans  # add --force-recreate
+            docker compose up -d --force-recreate --remove-orphans

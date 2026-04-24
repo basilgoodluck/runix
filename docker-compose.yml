@@ -20,6 +20,7 @@ services:
       TLS_ENABLED: ${TLS_ENABLED:-false}
       DATABASE_URL: postgresql://runix:${POSTGRES_PASSWORD}@db:5432/runix
     volumes:
+      - ./.env:/app/.env
       - //var/run/docker.sock:/var/run/docker.sock
     depends_on:
       redis:
