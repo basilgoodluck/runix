@@ -25,6 +25,19 @@ services:
       - runix-internal
     security_opt:
       - no-new-privileges:true
+  
+  db:
+    image: postgres:16
+    container_name: runix-db
+    restart: always
+    environment:
+      POSTGRES_USER: runix
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: runix
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - runix-internal
 
   redis:
     image: redis:7-alpine
@@ -52,7 +65,7 @@ services:
 networks:
   runix-internal:
     driver: bridge
-    internal: false
 
 volumes:
   redis-data:
+  pgdata:

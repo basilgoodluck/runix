@@ -5,9 +5,7 @@ import { store } from "@/state/store";
 import { registerAgentOnChain } from "./agent.registry";
 import type { AgentInfo } from "@/execution/types";
 import logger from "@/lib/logger";
-
-const AGENT_PREFIX = "agent:";
-const API_KEY_PREFIX = "apikey:";
+import { prisma } from "@/prisma/prisma";
 
 function getClient() {
   return initiateDeveloperControlledWalletsClient({
@@ -25,7 +23,6 @@ export async function registerAgent(metadataUri: string): Promise<AgentInfo> {
 
   logger.info("AgentService: creating Circle wallet for new agent");
 
-  // Create a Circle wallet for the agent
   const walletsResponse = await client.createWallets({
     blockchains: ["ARC-TESTNET"],
     count: 1,
@@ -35,12 +32,11 @@ export async function registerAgent(metadataUri: string): Promise<AgentInfo> {
 
   const wallet = walletsResponse.data?.wallets?.[0];
   if (!wallet?.id || !wallet.address) {
-    throw new Error("Failed to create Circle wallet for agent");
+    throw new Error("Failed to create Circle wallet for agent"); 
   }
 
   logger.info(`AgentService: wallet created address=${wallet.address}`);
 
-  // Register agent on-chain via ERC-8004
   const { txHash, onchainAgentId } = await registerAgentOnChain(
     wallet.address,
     metadataUri
@@ -60,27 +56,54 @@ export async function registerAgent(metadataUri: string): Promise<AgentInfo> {
     createdAt: Date.now(),
   };
 
-  // Store agent data in Redis
-  await store.set(`${AGENT_PREFIX}${agentId}`, JSON.stringify(agent));
+  // STORE IN POSTGRES (Prisma)
+  await prisma.agent.create({
+    data: {
+      id: agentId,
+      apiKey,
+      walletId: wallet.id,
+      walletAddress: wallet.address,
+      onchainAgentId: onchainAgentId ?? null,
+      txHash,
+      metadataUri,
+      createdAt: new Date(),
+    },
+  });
 
-  // Map API key → agentId for fast lookup on every request
-  await store.set(`${API_KEY_PREFIX}${apiKey}`, agentId);
+  // KEEP REDIS ONLY FOR FAST API KEY LOOKUP
+  await store.set(`apikey:${apiKey}`, agentId);
 
-  logger.info(`AgentService: agent registered agentId=${agentId} onchainId=${onchainAgentId}`);
+  logger.info(
+    `AgentService: agent registered agentId=${agentId} onchainId=${onchainAgentId}`
+  );
 
   return agent;
 }
 
 export async function getAgentByApiKey(apiKey: string): Promise<AgentInfo | null> {
-  const agentId = await store.get(`${API_KEY_PREFIX}${apiKey}`);
+  const agentId = await store.get(`apikey:${apiKey}`);
   if (!agentId) return null;
+
   return getAgentById(agentId);
 }
 
 export async function getAgentById(agentId: string): Promise<AgentInfo | null> {
-  const raw = await store.get(`${AGENT_PREFIX}${agentId}`);
-  if (!raw) return null;
-  return JSON.parse(raw) as AgentInfo;
+  const agent = await prisma.agent.findUnique({
+    where: { id: agentId },
+  });
+
+  if (!agent) return null;
+
+  return {
+    agentId: agent.id,
+    apiKey: agent.apiKey,
+    walletId: agent.walletId,
+    walletAddress: agent.walletAddress,
+    onchainAgentId: agent.onchainAgentId ?? undefined,
+    txHash: agent.txHash ?? "",
+    metadataUri: agent.metadataUri,
+    createdAt: agent.createdAt.getTime(),
+  };
 }
 
 export async function getAgentBalance(walletId: string): Promise<string> {

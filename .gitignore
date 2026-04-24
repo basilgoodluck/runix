@@ -45,3 +45,4 @@ proposition.md
 plan.md
 
 *.npmrc
+/generated/prisma

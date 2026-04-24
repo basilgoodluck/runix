@@ -8,6 +8,10 @@ export const config = {
   tlsEnabled: process.env.TLS_ENABLED === "true",
   apiKey: process.env.API_KEY ?? "",
 
+  google: {
+    clientId: process.env.GOOGLE_CLIENT_ID ?? "",
+  },
+
   redis: {
     host: process.env.REDIS_HOST ?? "127.0.0.1",
     port: parseInt(process.env.REDIS_PORT ?? "6379", 10),

@@ -1,14 +1,3 @@
-FROM node:20-alpine AS builder
-
-WORKDIR /app
-
-COPY package*.json ./
-RUN npm ci --frozen-lockfile
-
-COPY . .
-RUN npm run build
-
-
 FROM node:20-alpine AS runner
 
 WORKDIR /app
@@ -19,7 +8,9 @@ COPY package*.json ./
 RUN npm ci --frozen-lockfile --omit=dev
 
 COPY --from=builder /app/dist ./dist
+COPY scripts/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 EXPOSE 2345
 
-CMD ["node", "dist/engine/server.js"]
+ENTRYPOINT ["/entrypoint.sh"]
