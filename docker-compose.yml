@@ -6,6 +6,8 @@ services:
       dockerfile: docker/engine/Dockerfile
     container_name: runix
     restart: unless-stopped
+    env_file:
+      - .env
     ports:
       - "2345:2345"
     environment:
