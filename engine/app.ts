@@ -6,12 +6,15 @@ import { randomUUID } from "crypto";
 import { executeRouter } from "./routes/execute.route";
 import { agentRouter } from "./routes/agent.route";
 import { billingRouter } from "./routes/billing.route";
+import authRouter from "./routes/auth.route";
 import { RunixError } from "@/lib/error";
 import { getAgentByApiKey } from "@/agents/agent.service";
 import logger from "@/lib/logger";
 import { config } from "@/config";
 
 const app = express();
+
+app.set("trust proxy", true);
 
 app.use(helmet());
 
@@ -96,7 +99,7 @@ app.use("/api", async (req: Request, res: Response, next: NextFunction) => {
 app.use("/api", executeRouter);
 app.use("/api/agents", agentRouter);
 app.use("/api/billing", billingRouter);
-
+app.use("/api/auth", authRouter);
 app.use((_req, res) => {
   res.status(404).json({ error: "Not found" });
 });
