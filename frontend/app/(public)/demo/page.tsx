@@ -75,7 +75,7 @@ export default function DemoPage() {
     setState({ steps: [], events: [], totalCost: 0, totalDuration: 0, done: false, activePipelineStep: -1 });
 
     try {
-      const res = await fetch(`${API_URL}/demo/${scenario.agent}`, {
+      const res = await fetch(`${API_URL}/agent/demo/${scenario.agent}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(scenario.payload),

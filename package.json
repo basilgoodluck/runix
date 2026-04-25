@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "tsx engine/server.ts",
     "build": "esbuild engine/server.ts --bundle --platform=node --format=esm --outfile=dist/engine/server.js --packages=external",
-    "setup": "tsx scripts/register-agent.ts",
+    "setup": "tsx scripts/setup.ts",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run"

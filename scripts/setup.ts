@@ -36,3 +36,17 @@
 // });
 
 // console.log(response);
+
+import { RunixClient } from "@basilgoodluck/runix-sdk";
+
+async function register() {
+  const { apiKey, walletAddress, agentId } = await RunixClient.register({
+    metadataUri: "https://gist.githubusercontent.com/basilgoodluck/2375fa1b3e1597cb83c1bb3909d4b36a/raw/96abaae02464abd3d45538379e3ce4bd140c0279/quasar-agent.json"
+  });
+
+  console.log("apikey:", apiKey);
+  console.log("walletAddress:", walletAddress);
+  console.log("agentId:", agentId);
+}
+
+register();

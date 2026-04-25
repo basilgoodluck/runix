@@ -69,9 +69,9 @@ app.get("/health", (_req, res) => {
 // app.use("/api/auth", authRouter);
 
 // ─────────────────────────────
-app.use("/api/agent", agentRouter);
+app.use("/api/agents", agentRouter);
 app.use("/api/billing", billingRouter);
-app.use("/api/agent", demoRouter);
+app.use("/api/agents", demoRouter);
 // 🔐 API KEY MIDDLEWARE (SDK ONLY)
 // ─────────────────────────────
 
