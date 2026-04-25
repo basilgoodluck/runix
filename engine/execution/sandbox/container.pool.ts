@@ -13,7 +13,7 @@ interface PooledContainer {
   status: "idle" | "busy";
 }
 
-const POOL_SIZE_PER_RUNTIME: number = parseInt(process.env["POOL_SIZE_PER_LANGUAGE"] ?? "1", 10);
+const POOL_SIZE_PER_RUNTIME: number = parseInt(process.env["POOL_SIZE_PER_LANGUAGE"] ?? "5", 10);
 const PULL_TIMEOUT_MS = 30_000;
 
 export class ContainerPool {
@@ -61,12 +61,9 @@ export class ContainerPool {
   async release(pooled: PooledContainer): Promise<void> {
     const { runtime } = pooled;
     const slots = this.pool.get(runtime) ?? [];
-    const idx = slots.indexOf(pooled);
-    if (idx !== -1) slots.splice(idx, 1);
 
-    await pooled.container.kill({ Signal: "SIGKILL" }).catch(() => {});
-    await pooled.container.remove({ force: true }).catch(() => {});
-
+    // replenish FIRST — spin up fresh container before killing old one
+    // this keeps the pool full at all times so queued jobs don't wait
     try {
       const fresh = await this.createPooledContainer(runtime, false);
       const waiting = this.waitQueue.get(runtime) ?? [];
@@ -88,6 +85,12 @@ export class ContainerPool {
       logger.error(`ContainerPool: failed to replenish [${runtime}] — ${err.message}`);
       const waiting = this.waitQueue.get(runtime) ?? [];
       while (waiting.length > 0) waiting.shift()!(null);
+    } finally {
+      // kill old container AFTER fresh one is ready
+      const idx = slots.indexOf(pooled);
+      if (idx !== -1) slots.splice(idx, 1);
+      await pooled.container.kill({ Signal: "SIGKILL" }).catch(() => {});
+      await pooled.container.remove({ force: true }).catch(() => {});
     }
   }
 
