@@ -41,7 +41,7 @@ import { RunixClient } from "@basilgoodluck/runix-sdk";
 
 async function register() {
   const { apiKey, walletAddress, agentId } = await RunixClient.register({
-    metadataUri: "https://gist.githubusercontent.com/basilgoodluck/2375fa1b3e1597cb83c1bb3909d4b36a/raw/96abaae02464abd3d45538379e3ce4bd140c0279/quasar-agent.json"
+    metadataUri: "https://gist.githubusercontent.com/basilgoodluck/83651a3b32ffea1bb14f2052863a9c63/raw/472aac106dd7816925edbebfb9a01f6d44ed14b7/runix-code-agent.json"
   });
 
   console.log("apikey:", apiKey);

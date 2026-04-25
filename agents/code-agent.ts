@@ -17,8 +17,7 @@ import { RunixClient } from "@basilgoodluck/runix-sdk";
 import type { Request, Response } from "express";
 
 const runix = new RunixClient({
-  apiKey: process.env.RUNIX_API_KEY!,
-  baseUrl: process.env.RUNIX_BASE_URL ?? "https://runix.basilgoodluck.com",
+  apiKey: process.env.RUNIX_API_KEY!
 });
 
 // ─── SSE ─────────────────────────────────────────────────────────────────────
