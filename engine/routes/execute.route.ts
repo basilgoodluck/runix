@@ -1,3 +1,5 @@
+// FILE: executeRouter.ts - COMPLETE FIXED FILE
+
 import { Router } from "express";
 import type { Request, Response, NextFunction } from "express";
 import { enqueueJob } from "@/execution/queue/job.queue";
@@ -34,7 +36,6 @@ executeRouter.post("/", async (req: Request, res: Response, next: NextFunction) 
 
     logger.info(`Received job [${job.id}] type=${job.type}`);
 
-    // Pass agent API key through to routeJob for payment + reputation
     const apiKey = (req as any).agentApiKey as string | undefined;
     const result = await enqueueJob(job, apiKey);
 
@@ -68,12 +69,17 @@ executeRouter.post("/stream", async (req: Request, res: Response, next: NextFunc
 
     logger.info(`Streaming job [${job.id}] runtime=${runtime}`);
 
+    const apiKey = (req as any).agentApiKey as string | undefined;
+    
+    const result = await enqueueJob(job, apiKey);
+
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
     res.flushHeaders();
 
-    // Handle client disconnect
+    res.write(`data: ${JSON.stringify({ type: "result", data: result })}\n\n`);
+
     req.on("close", () => {
       logger.info(`Stream job [${job.id}] — client disconnected`);
     });

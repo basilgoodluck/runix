@@ -1,10 +1,12 @@
+// FILE: stream.executor.ts - COMPLETE FIXED VERSION
+
 import { PassThrough } from "stream";
 import { containerPool } from "../sandbox/container.pool";
 import type { ComputeJob, StreamChunk } from "../types";
 import type { SupportedRuntime } from "../sandbox/container.pool";
 import logger from "@/lib/logger";
 
-export async function* streamJob(job: ComputeJob): AsyncGenerator<StreamChunk> {
+export async function* streamJob(job: ComputeJob, apiKey?: string): AsyncGenerator<StreamChunk> {
   const runtime = job.runtime as SupportedRuntime;
   const pooled = await containerPool.acquire(runtime);
   const { container } = pooled;
