@@ -6,6 +6,7 @@ import rateLimit from "express-rate-limit";
 import { randomUUID } from "crypto";
 
 import { executeRouter } from "./routes/execute.route";
+import { agentRouter } from "./routes/agent.route";
 import { billingRouter } from "./routes/billing.route";
 import authRouter from "./routes/auth.route";
 
@@ -68,6 +69,9 @@ app.get("/health", (_req, res) => {
 app.use("/api/auth", authRouter);
 
 // ─────────────────────────────
+app.use("/api/execute", executeRouter);
+app.use("/api/agent", agentRouter);
+app.use("/api/billing", billingRouter);
 // 🔐 API KEY MIDDLEWARE (SDK ONLY)
 // ─────────────────────────────
 
@@ -109,8 +113,6 @@ async function apiKeyMiddleware(req: Request, res: Response, next: NextFunction)
 // 🔐 SDK ROUTES ONLY (IMPORTANT)
 // ─────────────────────────────
 
-app.use("/api/execute", apiKeyMiddleware, executeRouter);
-app.use("/api/billing", apiKeyMiddleware, billingRouter);
 
 // ─────────────────────────────
 // 404

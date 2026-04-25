@@ -1,17 +1,19 @@
-"use client";
-
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { ReactNode } from "react";
-import { Shell } from "./shell";
+import type { ReactNode } from "react";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
-  const router = useRouter();
-
-  useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-    if (!token) router.replace("/auth");
-  }, []);
-
-  return <Shell>{children}</Shell>;
+  return (
+    <div style={{
+      minHeight: "100vh",
+      background: "#060708",
+      color: "#e8e8e8",
+      fontFamily: "'Inter', sans-serif",
+    }}>
+      {/* Page content */}
+      <main style={{
+        padding: 24,
+      }}>
+        {children}
+      </main>
+    </div>
+  );
 }
