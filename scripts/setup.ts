@@ -41,7 +41,7 @@ import { RunixClient } from "@basilgoodluck/runix-sdk";
 
 async function register() {
   const { apiKey, walletAddress, agentId } = await RunixClient.register({
-    metadataUri: "https://gist.githubusercontent.com/basilgoodluck/83651a3b32ffea1bb14f2052863a9c63/raw/472aac106dd7816925edbebfb9a01f6d44ed14b7/runix-code-agent.json"
+    metadataUri: "https://gist.githubusercontent.com/basilgoodluck/1cb67e2f9292e232b8d64d92b57cc7fd/raw/600af7b88f4b786857674469b5318dbc443afe10/runix-research-agent.json"
   });
 
   console.log("apikey:", apiKey);
