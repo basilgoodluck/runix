@@ -7,6 +7,10 @@ import logger from "@/lib/logger";
 const PAYMENT_HISTORY_PREFIX = "payments:";
 const ARC_TESTNET_USDC = "0x3600000000000000000000000000000000000000";
 
+// How long to wait for CONFIRMED status before giving up (ms)
+const CONFIRM_TIMEOUT_MS = 30_000;
+const CONFIRM_POLL_MS    = 2_000;
+
 function getClient() {
   return initiateDeveloperControlledWalletsClient({
     apiKey: config.circle.apiKey,
@@ -14,8 +18,42 @@ function getClient() {
   });
 }
 
-// Attempt to deduct payment from agent wallet to system wallet
-// Always fails silently — never blocks job result
+/**
+ * Poll until the transaction reaches CONFIRMED or FAILED,
+ * or until CONFIRM_TIMEOUT_MS elapses.
+ * Returns the final status string.
+ */
+async function waitForConfirmation(
+  client: ReturnType<typeof getClient>,
+  txId: string
+): Promise<string> {
+  const deadline = Date.now() + CONFIRM_TIMEOUT_MS;
+
+  while (Date.now() < deadline) {
+    await new Promise((r) => setTimeout(r, CONFIRM_POLL_MS));
+
+    try {
+      const res = await client.getTransaction({ id: txId });
+      const status = res.data?.transaction?.state ?? "UNKNOWN";
+
+      if (status === "CONFIRMED" || status === "COMPLETE") return "CONFIRMED";
+      if (status === "FAILED" || status === "DENIED" || status === "CANCELLED") {
+        return status;
+      }
+      // INITIATED / QUEUED / SENT — keep polling
+    } catch (err: any) {
+      logger.warn(`PaymentService: poll error txId=${txId} — ${err.message}`);
+    }
+  }
+
+  return "TIMEOUT";
+}
+
+/**
+ * Attempt to deduct payment from agent wallet to system wallet.
+ * Waits for on-chain confirmation before returning.
+ * Always fails silently — never blocks the job result.
+ */
 export async function attemptPayment(
   agentWalletAddress: string,
   cost: JobCost,
@@ -26,9 +64,10 @@ export async function attemptPayment(
     const client = getClient();
     const amountStr = cost.costUsd.toFixed(6);
 
+    // walletId (Circle UUID) — not walletAddress (0x...)
+    // amounts is an array in the Circle SDK
     const tx = await client.createTransaction({
-      blockchain: "ARC-TESTNET",
-      walletAddress: agentWalletAddress,
+      walletId: agentWalletId,
       destinationAddress: config.circle.systemWalletAddress,
       amount: [amountStr],
       tokenAddress: ARC_TESTNET_USDC,
@@ -36,15 +75,30 @@ export async function attemptPayment(
     });
 
     const txId = tx.data?.id;
-    if (!txId) return cost;
+    if (!txId) {
+      logger.warn(`PaymentService: no txId returned jobId=${jobId}`);
+      return cost;
+    }
 
-    // Store payment record for billing history
+    logger.info(`PaymentService: transaction initiated jobId=${jobId} txId=${txId} amount=${amountStr} USDC`);
+
+    // Wait for on-chain confirmation
+    const finalStatus = await waitForConfirmation(client, txId);
+    logger.info(`PaymentService: transaction ${finalStatus} jobId=${jobId} txId=${txId}`);
+
+    if (finalStatus !== "CONFIRMED") {
+      logger.warn(`PaymentService: transaction did not confirm — status=${finalStatus} jobId=${jobId} txId=${txId}`);
+      return cost;
+    }
+
+    // Store confirmed payment record
     const record = {
       jobId,
       txId,
       amount: amountStr,
       currency: "USDC",
       network: "ARC-TESTNET",
+      status: "CONFIRMED",
       timestamp: new Date().toISOString(),
     };
 
@@ -52,8 +106,6 @@ export async function attemptPayment(
       `${PAYMENT_HISTORY_PREFIX}${agentWalletId}`,
       JSON.stringify(record)
     );
-
-    logger.info(`PaymentService: payment initiated jobId=${jobId} amount=${amountStr} USDC txId=${txId}`);
 
     return { ...cost, paymentId: txId };
   } catch (err: any) {
