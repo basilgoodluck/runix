@@ -1,5 +1,6 @@
 import dotenv from "dotenv";
 dotenv.config();
+
 export const config = {
   port: parseInt(process.env.PORT ?? "2345", 10),
   logLevel: process.env.LOG_LEVEL ?? "info",
@@ -18,7 +19,7 @@ export const config = {
     refreshSecret: process.env.JWT_REFRESH_SECRET ?? "",
   },
   redis: {
-    host: process.env.REDIS_HOST ?? "127.0.0.1",
+    host: process.env.REDIS_HOST, 
     port: parseInt(process.env.REDIS_PORT ?? "6379", 10),
     password: process.env.REDIS_PASSWORD ?? undefined,
   },
