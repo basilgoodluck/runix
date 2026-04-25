@@ -11,7 +11,7 @@ import logger from "../lib/logger";
 export const executeRouter = Router();
 
 // ── Standard execution ────────────────────────────────────────────────────────
-executeRouter.post("/execute", async (req: Request, res: Response, next: NextFunction) => {
+executeRouter.post("/", async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { type, timeoutMs, ...rest } = req.body;
 
@@ -45,7 +45,7 @@ executeRouter.post("/execute", async (req: Request, res: Response, next: NextFun
 });
 
 // ── Streaming execution (compute only, SSE) ───────────────────────────────────
-executeRouter.post("/execute/stream", async (req: Request, res: Response, next: NextFunction) => {
+executeRouter.post("/stream", async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { runtime, code, stdin, timeoutMs } = req.body;
 
