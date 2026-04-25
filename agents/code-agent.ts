@@ -17,6 +17,7 @@ import { RunixClient } from "@basilgoodluck/runix-sdk";
 import type { Request, Response } from "express";
 import dotenv from "dotenv";
 dotenv.config();
+console.log("Initializing Runix Code Agent with API key:", process.env.RUNIX_CODE_API_KEY ? "****" : "MISSING");
 
 const runix = new RunixClient({ apiKey: process.env.RUNIX_CODE_API_KEY! });
 

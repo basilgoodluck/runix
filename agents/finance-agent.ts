@@ -18,6 +18,8 @@ import type { Request, Response } from "express";
 import dotenv from "dotenv";
 dotenv.config();
 
+console.log("Initializing Runix Finance Agent with API key:", process.env.RUNIX_FINANCE_API_KEY ? "****" : "MISSING");
+
 const runix = new RunixClient({ apiKey: process.env.RUNIX_FINANCE_API_KEY! });
 
 const BINANCE = "https://api.binance.com/api/v3";
