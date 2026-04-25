@@ -13,7 +13,6 @@ import { RunixError } from "@/lib/error";
 import { getAgentByApiKey } from "@/agents/agent.service";
 import logger from "@/lib/logger";
 import { config } from "@/config";
-import { demoRouter } from "./routes/demo.route";
 
 const app = express();
 
@@ -71,7 +70,6 @@ app.get("/health", (_req, res) => {
 // ─────────────────────────────
 app.use("/api/agents", agentRouter);
 app.use("/api/billing", billingRouter);
-app.use("/api/agents", demoRouter);
 // 🔐 API KEY MIDDLEWARE (SDK ONLY)
 // ─────────────────────────────
 
