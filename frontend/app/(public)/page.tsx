@@ -37,6 +37,9 @@ const CAPABILITIES = [
   { title: "Stateful Execution", desc: "Agents keep full context between calls. Each execution has access to prior session state." },
 ];
 
+const WALLET_ADDRESS = "0xac5c3cbbfa0a28f5208e5411b2a07d462511c13d";
+const ARC_SCAN_URL = `https://testnet.arcscan.app/address/${WALLET_ADDRESS}`;
+
 export default function HomePage() {
   const [hoveredCap, setHoveredCap] = useState<number | null>(null);
 
@@ -76,7 +79,6 @@ export default function HomePage() {
 
         .noise-overlay { position: fixed; inset: 0; pointer-events: none; z-index: 100; opacity: 0.02; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); background-size: 200px; }
 
-        /* Use cases card grid */
         .usecase-grid {
           display: grid;
           grid-template-columns: 1fr;
@@ -151,15 +153,14 @@ export default function HomePage() {
 
       <div className="noise-overlay" />
 
-      {/* ── HERO ── (full viewport, original padding restored) */}
+      {/* ── HERO ── */}
       <section style={{
-        padding: "90px 20px 60px",      // mobile default
+        padding: "90px 20px 60px",
         minHeight: "100vh",
         maxWidth: 1280,
         margin: "0 auto",
         position: "relative",
       }}>
-        {/* Desktop larger padding via media query inside style? We'll keep responsive inside component */}
         <style>{`
           @media (min-width: 640px) {
             .hero-section { padding: 110px 32px 80px !important; }
@@ -219,6 +220,39 @@ export default function HomePage() {
                   <div style={{ fontSize: "clamp(13px, 2vw, 15px)", color: "rgba(255,255,255,0.55)" }}>{label}</div>
                 </div>
               ))}
+            </div>
+          </FadeUp>
+
+          {/* ── WALLET LINK SECTION ── */}
+          <FadeUp delay={320} style={{ marginTop: 48 }}>
+            <div style={{ 
+              padding: "20px 24px", 
+              background: "rgba(139,92,246,0.08)", 
+              border: "1px solid rgba(139,92,246,0.2)", 
+              borderRadius: 12,
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: 16
+            }}>
+              <div>
+                <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginBottom: 6, letterSpacing: "0.03em", textTransform: "uppercase" }}>
+                  View your transaction history
+                </div>
+                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 13, color: "rgba(139,92,246,0.9)" }}>
+                  {WALLET_ADDRESS.slice(0, 6)}...{WALLET_ADDRESS.slice(-4)}
+                </div>
+              </div>
+              <a 
+                href={ARC_SCAN_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-ghost"
+                style={{ padding: "8px 20px", fontSize: 13 }}
+              >
+                View on ARC Testnet →
+              </a>
             </div>
           </FadeUp>
         </div>
@@ -334,7 +368,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── USE CASES ── (COMPLETELY NEW LAYOUT) */}
+      {/* ── USE CASES ── */}
       <section className="sec-alt sec-divider">
         <div className="sec">
           <FadeUp>
