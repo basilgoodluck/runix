@@ -13,7 +13,7 @@ interface PooledContainer {
   status: "idle" | "busy";
 }
 
-const POOL_SIZE_PER_RUNTIME: number = parseInt(process.env["POOL_SIZE_PER_LANGUAGE"] ?? "5", 10);
+const POOL_SIZE_PER_RUNTIME: number = parseInt(process.env["POOL_SIZE_PER_LANGUAGE"] ?? "6", 10);
 const PULL_TIMEOUT_MS = 30_000;
 
 export class ContainerPool {
