@@ -66,6 +66,12 @@ export async function attemptPayment(
 
     // walletId (Circle UUID) — not walletAddress (0x...)
     // amounts is an array in the Circle SDK
+    // Before createTransaction, log what you're sending
+    console.log('Payment attempt:', {
+      walletId: agentWalletId,  // Is this a UUID or 0x address?
+      destination: config.circle.systemWalletAddress,
+      amount: amountStr
+    });
     const tx = await client.createTransaction({
       walletId: agentWalletId,
       destinationAddress: config.circle.systemWalletAddress,
