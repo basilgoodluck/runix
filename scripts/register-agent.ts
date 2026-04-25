@@ -19,14 +19,6 @@ dotenv.config();
 
 const IDENTITY_REGISTRY = "0x8004A818BFB912233c491871b3d84c89A494BD9e";
 
-const RUNIX_METADATA = {
-  name: "Runix Execution Engine",
-  description: "Machine-to-machine execution service. Run code, HTTP actions, data jobs, and stateful operations. Pay per execution in USDC.",
-  agent_type: "execution_engine",
-  capabilities: ["compute", "action", "data", "stateful", "batch", "file"],
-  version: "1.0.0",
-};
-
 // For hackathon — use a placeholder IPFS URI or upload metadata first
 const METADATA_URI = process.env["RUNIX_METADATA_URI"] ??
   "ipfs://bafkreibdi6623n3xpf7ymk62ckb4bo75o3qemwkpfvp5i25j66itxvsoei";

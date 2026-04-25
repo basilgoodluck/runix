@@ -1,0 +1,8 @@
+[
+  {
+    "id": "finance",
+    "label": "Crypto market",
+    "sub": "BTC ETH SOL BNB ARB",
+    "payload": {}
+  }
+]

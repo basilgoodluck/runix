@@ -1,42 +1,42 @@
-import { getAgentBalance } from '@/agents/agent.service';
-import { prisma } from '@/prisma/prisma';
-import { Router } from 'express';
+import { Router } from "express";
+import type { Request, Response, NextFunction } from "express";
+import { registerAgent } from "@/agents/agent.service";
+import { ValidationError } from "@/lib/error";
+import logger from "@/lib/logger";
+import { codeAgentHandler } from "@/agents/code-agent";
+import { financeAgentHandler } from "@/agents/finance-agent";
+import { researchAgentHandler } from "@/agents/research-agent";
 
-const agentRouter = Router();
 
-agentRouter.get("/dashboard", async (req, res, next) => {
+export const agentRouter = Router();
+
+agentRouter.post("/register", async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const userId = (req as any).userId;
+    const { metadataUri } = req.body;
 
-    const agent = await prisma.agent.findFirst({ where: { userId } });
-    if (!agent) return res.status(404).json({ error: "Agent not found" });
+    if (!metadataUri || typeof metadataUri !== "string") {
+      throw new ValidationError("metadataUri is required — provide an IPFS or HTTPS URI describing your agent");
+    }
 
-    const [totalJobs, successfulJobs, failedJobs, costAgg, recentJobs, recentPayments, balance] = await Promise.all([
-      prisma.job.count({ where: { agentId: agent.id } }),
-      prisma.job.count({ where: { agentId: agent.id, status: "success" } }),
-      prisma.job.count({ where: { agentId: agent.id, status: "failed" } }),
-      prisma.job.aggregate({ where: { agentId: agent.id }, _sum: { costUsd: true }, _avg: { durationMs: true } }),
-      prisma.job.findMany({ where: { agentId: agent.id }, orderBy: { createdAt: "desc" }, take: 10 }),
-      prisma.payment.findMany({ where: { agentId: agent.id }, orderBy: { createdAt: "desc" }, take: 10 }),
-      getAgentBalance(agent.walletId),
-    ]);
+    logger.info(`AgentRoute: new agent registration metadataUri=${metadataUri}`);
 
-    return res.json({
-      apiKey: agent.apiKey,
-      walletAddress: agent.walletAddress,
-      onchainAgentId: agent.onchainAgentId,
-      balance,
-      totalJobs,
-      successfulJobs,
-      failedJobs,
-      totalSpentUsd: costAgg._sum.costUsd ?? 0,
-      avgDurationMs: costAgg._avg.durationMs ?? 0,
-      recentJobs,
-      recentPayments,
+    const agent = await registerAgent(metadataUri);
+
+    return res.status(201).json({
+      agentId:          agent.agentId,
+      apiKey:           agent.apiKey,
+      walletAddress:    agent.walletAddress,
+      onchainAgentId:   agent.onchainAgentId,
+      txHash:           agent.txHash,
+      metadataUri:      agent.metadataUri,
+      createdAt:        agent.createdAt,
+      message:          "Fund your wallet with USDC on Arc Testnet to start submitting jobs",
     });
   } catch (err) {
     next(err);
   }
 });
 
-export { agentRouter };
+agentRouter.post("/demo/code",     codeAgentHandler);
+agentRouter.post("/demo/finance",  financeAgentHandler);
+agentRouter.post("/demo/research", researchAgentHandler);

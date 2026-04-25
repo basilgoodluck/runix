@@ -8,12 +8,12 @@ import { randomUUID } from "crypto";
 import { executeRouter } from "./routes/execute.route";
 import { agentRouter } from "./routes/agent.route";
 import { billingRouter } from "./routes/billing.route";
-import authRouter from "./routes/auth.route";
 
 import { RunixError } from "@/lib/error";
 import { getAgentByApiKey } from "@/agents/agent.service";
 import logger from "@/lib/logger";
 import { config } from "@/config";
+import { demoRouter } from "./routes/demo.route";
 
 const app = express();
 
@@ -66,12 +66,12 @@ app.get("/health", (_req, res) => {
 // 🔓 PUBLIC AUTH ROUTES (NO API KEY)
 // ─────────────────────────────
 
-app.use("/api/auth", authRouter);
+// app.use("/api/auth", authRouter);
 
 // ─────────────────────────────
-app.use("/api/execute", executeRouter);
 app.use("/api/agent", agentRouter);
 app.use("/api/billing", billingRouter);
+app.use("/api/agent", demoRouter);
 // 🔐 API KEY MIDDLEWARE (SDK ONLY)
 // ─────────────────────────────
 
@@ -79,10 +79,10 @@ async function apiKeyMiddleware(req: Request, res: Response, next: NextFunction)
   const authHeader = req.headers.authorization ?? "";
 
   const key = authHeader.startsWith("Bearer ")
-    ? authHeader.slice(7).trim()
+  ? authHeader.slice(7).trim()
     : authHeader.trim();
 
-  if (!key) {
+    if (!key) {
     return res.status(401).json({ error: "Missing API key" });
   }
 
@@ -94,11 +94,11 @@ async function apiKeyMiddleware(req: Request, res: Response, next: NextFunction)
 
   try {
     const agent = await getAgentByApiKey(key);
-
+    
     if (!agent) {
       return res.status(401).json({ error: "Invalid API key" });
     }
-
+    
     (req as any).agent = agent;
     (req as any).agentApiKey = key;
 
@@ -112,6 +112,7 @@ async function apiKeyMiddleware(req: Request, res: Response, next: NextFunction)
 // ─────────────────────────────
 // 🔐 SDK ROUTES ONLY (IMPORTANT)
 // ─────────────────────────────
+app.use("/api/execute", apiKeyMiddleware, executeRouter);
 
 
 // ─────────────────────────────
@@ -126,7 +127,7 @@ app.use((_req, res) => {
 // Error handler
 // ─────────────────────────────
 
-app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
+app.use((err: unknown, req: Request, res: Response) => {
   const reqId = (req as any).id ?? "unknown";
 
   if (err instanceof RunixError) {

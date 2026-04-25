@@ -18,7 +18,7 @@ function generateApiKey(): string {
   return `rx_${randomUUID().replace(/-/g, "")}`;
 }
 
-export async function provisionAgent(metadataUri: string, userId: string): Promise<AgentInfo> {
+export async function registerAgent(metadataUri: string): Promise<AgentInfo> {
   const client = getClient();
 
   logger.info("AgentService: creating Circle wallet for new agent");
@@ -37,82 +37,80 @@ export async function provisionAgent(metadataUri: string, userId: string): Promi
 
   logger.info(`AgentService: wallet created address=${wallet.address}`);
 
+  const { txHash, onchainAgentId } = await registerAgentOnChain(
+    wallet.address,
+    metadataUri
+  );
+
   const agentId = randomUUID();
   const apiKey = generateApiKey();
 
-  await prisma.agent.create({
-    data: {
-      id: agentId,
-      apiKey,
-      walletId: wallet.id,
-      walletAddress: wallet.address,
-      onchainAgentId: null,
-      txHash: null,
-      metadataUri,
-      userId,
-      createdAt: new Date(),
-    },
-  });
-
-  await store.set(`apikey:${apiKey}`, agentId);
-
-  logger.info(`AgentService: agent provisioned agentId=${agentId} wallet=${wallet.address}`);
-
-  return {
+  const agent: AgentInfo = {
     agentId,
-    apiKey,
+    ...(onchainAgentId ? { onchainAgentId } : {}),
+    txHash,
     walletId: wallet.id,
     walletAddress: wallet.address,
-    onchainAgentId: "",
-    txHash: "",
+    apiKey,
     metadataUri,
     createdAt: Date.now(),
   };
-}
 
-export async function ensureOnchainRegistration(agentId: string) {
-  const agent = await prisma.agent.findUnique({ where: { id: agentId } });
-  if (!agent) throw new Error("Agent not found");
-  if (agent.onchainAgentId) return agent; // already done, fast path
+  // persist to postgres
+  await prisma.agent.create({
+    data: {
+      id:             agentId,
+      apiKey,
+      walletId:       wallet.id,
+      walletAddress:  wallet.address,
+      onchainAgentId: onchainAgentId ?? "",
+      txHash,
+      metadataUri,
+      createdAt:      new Date(),
+    },
+  });
 
-  logger.info(`AgentService: registering agent onchain agentId=${agentId}`);
+  // keep redis for fast api key lookup on every request
+  await store.set(`apikey:${apiKey}`, agentId);
 
-  const { txHash, onchainAgentId } = await registerAgentOnChain(
-    agent.walletAddress,
-    agent.metadataUri
+  logger.info(
+    `AgentService: agent registered agentId=${agentId} onchainId=${onchainAgentId}`
   );
 
-  return prisma.agent.update({
-    where: { id: agentId },
-    data: { onchainAgentId, txHash },
-  });
+  return agent;
 }
 
 export async function getAgentByApiKey(apiKey: string): Promise<AgentInfo | null> {
+  // redis first - fast path on every authenticated request
   const agentId = await store.get(`apikey:${apiKey}`);
   if (!agentId) return null;
   return getAgentById(agentId);
 }
 
 export async function getAgentById(agentId: string): Promise<AgentInfo | null> {
-  const agent = await prisma.agent.findUnique({ where: { id: agentId } });
+  const agent = await prisma.agent.findUnique({
+    where: { id: agentId },
+  });
+
   if (!agent) return null;
 
   return {
-    agentId: agent.id,
-    apiKey: agent.apiKey,
-    walletId: agent.walletId,
-    walletAddress: agent.walletAddress,
+    agentId:        agent.id,
+    apiKey:         agent.apiKey,
+    walletId:       agent.walletId,
+    walletAddress:  agent.walletAddress,
     onchainAgentId: agent.onchainAgentId ?? "",
-    txHash: agent.txHash ?? "",
-    metadataUri: agent.metadataUri,
-    createdAt: agent.createdAt.getTime(),
+    txHash:         agent.txHash ?? "",
+    metadataUri:    agent.metadataUri,
+    createdAt:      agent.createdAt.getTime(),
   };
 }
 
 export async function getAgentBalance(walletId: string): Promise<string> {
   const client = getClient();
   const balances = await client.getWalletTokenBalance({ id: walletId });
-  const usdc = balances.data?.tokenBalances?.find((b) => b.token?.symbol === "USDC");
+  const usdc = balances.data?.tokenBalances?.find(
+    (b) => b.token?.symbol === "USDC"
+  );
   return usdc?.amount ?? "0";
 }

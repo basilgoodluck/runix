@@ -7,12 +7,11 @@ import { ValidationError } from "@/lib/error";
 import { generateJobId, clamp } from "../lib/utils";
 import { config } from "../config";
 import logger from "../lib/logger";
-import { requireOnchain } from "@/middleware/onchain.middleware";
 
 export const executeRouter = Router();
 
 // ── Standard execution ────────────────────────────────────────────────────────
-executeRouter.post("/execute", requireOnchain, async (req: Request, res: Response, next: NextFunction) => {
+executeRouter.post("/execute", async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { type, timeoutMs, ...rest } = req.body;
 
@@ -35,6 +34,7 @@ executeRouter.post("/execute", requireOnchain, async (req: Request, res: Respons
 
     logger.info(`Received job [${job.id}] type=${job.type}`);
 
+    // Pass agent API key through to routeJob for payment + reputation
     const apiKey = (req as any).agentApiKey as string | undefined;
     const result = await enqueueJob(job, apiKey);
 
@@ -45,7 +45,7 @@ executeRouter.post("/execute", requireOnchain, async (req: Request, res: Respons
 });
 
 // ── Streaming execution (compute only, SSE) ───────────────────────────────────
-executeRouter.post("/execute/stream", requireOnchain, async (req: Request, res: Response, next: NextFunction) => {
+executeRouter.post("/execute/stream", async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { runtime, code, stdin, timeoutMs } = req.body;
 
@@ -73,6 +73,7 @@ executeRouter.post("/execute/stream", requireOnchain, async (req: Request, res: 
     res.setHeader("Connection", "keep-alive");
     res.flushHeaders();
 
+    // Handle client disconnect
     req.on("close", () => {
       logger.info(`Stream job [${job.id}] — client disconnected`);
     });

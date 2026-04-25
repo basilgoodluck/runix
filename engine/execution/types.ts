@@ -5,6 +5,7 @@ export enum JobType {
   STATEFUL = "stateful",
   BATCH    = "batch",
   FILE     = "file",
+  LLM      = "llm",
 }
 
 export enum JobStatus {
@@ -43,6 +44,20 @@ export interface ComputeJob extends BaseJob {
   code: string;
   stdin?: string;
   env?: Record<string, string>;
+}
+
+export interface LlmJob {
+  id: string;
+  type: "llm";                        // matches JobType.LLM
+  prompt: string;                     // the user prompt
+  systemPrompt?: string;              // optional system prompt
+  provider?: "gemini" | "openai" | "custom";  // default: "gemini"
+  model?: string;                     // default: gemini-2.0-flash / gpt-4o-mini
+  endpoint?: string;                  // required if provider = "custom"
+  apiKey?: string;                    // overrides env var if provided
+  headers?: Record<string, string>;   // extra headers
+  retries?: number;                   // default: 2
+  timeoutMs?: number;                 // default: 30000
 }
 
 // ---------- Action ----------
@@ -111,7 +126,7 @@ export interface FileJob extends BaseJob {
 
 // ---------- Union ----------
 
-export type Job = ComputeJob | ActionJob | DataJob | StatefulJob | BatchJob | FileJob;
+export type Job = ComputeJob | ActionJob | DataJob | StatefulJob | BatchJob | FileJob | LlmJob;
 
 // ---------- Resources ----------
 

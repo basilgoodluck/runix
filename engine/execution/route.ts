@@ -13,6 +13,7 @@ import { recordReputation } from "@/agents/agent.registry";
 import { getAgentByApiKey } from "@/agents/agent.service";
 import { config } from "@/config";
 import logger from "@/lib/logger";
+import { LlmExecutor } from "./executors/llm.executor";
 
 const compute  = new ComputeExecutor();
 const action   = new ActionExecutor();
@@ -20,6 +21,7 @@ const data     = new DataExecutor();
 const stateful = new StatefulExecutor();
 const batch    = new BatchExecutor();
 const file     = new FileExecutor();
+const llm      = new LlmExecutor();
 
 export async function routeJob(job: Job, apiKey?: string): Promise<ExecutionResult> {
   logger.info(`Routing job [${job.id}] type=${job.type}`);
@@ -40,6 +42,7 @@ export async function routeJob(job: Job, apiKey?: string): Promise<ExecutionResu
     case JobType.STATEFUL: result = await stateful.run(job); break;
     case JobType.BATCH:    result = await batch.run(job);    break;
     case JobType.FILE:     result = await file.run(job);     break;
+    case JobType.LLM:      result = await llm.run(job);      break;
     default:
       throw new Error(`Unknown job type: ${(job as Job).type}`);
   }

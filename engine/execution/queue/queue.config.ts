@@ -8,7 +8,8 @@ export const CONCURRENCY: Record<JobType, number> = {
   [JobType.DATA]:     10,
   [JobType.STATEFUL]: 20,
   [JobType.FILE]: 15,
-  [JobType.BATCH]: 30
+  [JobType.BATCH]: 30,
+  [JobType.LLM]: 5,
 };
 
 export const JOB_OPTIONS = {

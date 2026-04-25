@@ -1,0 +1,6 @@
+[
+  { "id": "research-llm",     "label": "Large language models", "sub": "Research", "payload": { "topic": "large language models" } },
+  { "id": "research-quantum", "label": "Quantum computing",     "sub": "Research", "payload": { "topic": "quantum computing" } },
+  { "id": "research-crispr",  "label": "CRISPR gene editing",   "sub": "Research", "payload": { "topic": "CRISPR gene editing" } },
+  { "id": "research-zkp",     "label": "Zero knowledge proofs", "sub": "Research", "payload": { "topic": "zero knowledge proofs" } }
+]

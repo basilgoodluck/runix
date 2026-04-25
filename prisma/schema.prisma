@@ -6,36 +6,17 @@ generator client {
   provider = "prisma-client-js"
 }
 
-model User {
-  id            String         @id @default(uuid())
-  email         String         @unique
-  name          String
-  picture       String         @default("")
-  createdAt     DateTime       @default(now())
-  agents        Agent[]
-  refreshTokens RefreshToken[]
-}
-
 model Agent {
-  id             String   @id
-  apiKey         String   @unique
+  id             String    @id
+  apiKey         String    @unique
   walletId       String
   walletAddress  String
   onchainAgentId String?
   txHash         String?
   metadataUri    String
-  createdAt      DateTime @default(now())
-  userId         String
-  user           User     @relation(fields: [userId], references: [id])
-}
-
-model RefreshToken {
-  id        String   @id @default(uuid())
-  token     String   @unique
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  expiresAt DateTime
-  createdAt DateTime @default(now())
+  createdAt      DateTime  @default(now())
+  jobs           Job[]
+  payments       Payment[]
 }
 
 model Job {
@@ -46,6 +27,7 @@ model Job {
   costUsd    Float?
   durationMs Int
   createdAt  DateTime @default(now())
+  agent      Agent    @relation(fields: [agentId], references: [id])
 }
 
 model Payment {
@@ -55,4 +37,5 @@ model Payment {
   txId      String
   amount    String
   createdAt DateTime @default(now())
+  agent     Agent    @relation(fields: [agentId], references: [id])
 }

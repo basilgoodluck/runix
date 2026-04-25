@@ -13,12 +13,13 @@ const connection = {
 };
 
 const CONCURRENCY: Record<JobType, number> = {
-  [JobType.COMPUTE]:  3,
+  [JobType.COMPUTE]:  20,
   [JobType.ACTION]:   10,
   [JobType.DATA]:     10,
-  [JobType.STATEFUL]: 20,
+  [JobType.STATEFUL]: 10,
   [JobType.BATCH]:    5,
   [JobType.FILE]:     5,
+  [JobType.LLM]:      5,
 };
 
 function createWorker(jobType: JobType) {
@@ -52,7 +53,7 @@ export const dataWorker     = createWorker(JobType.DATA);
 export const statefulWorker = createWorker(JobType.STATEFUL);
 export const batchWorker    = createWorker(JobType.BATCH);
 export const fileWorker     = createWorker(JobType.FILE);
-
+export const llmWorker      = createWorker(JobType.LLM);
 export const allWorkers = [
   computeWorker,
   actionWorker,
@@ -60,4 +61,5 @@ export const allWorkers = [
   statefulWorker,
   batchWorker,
   fileWorker,
+  llmWorker
 ];
