@@ -24,6 +24,7 @@ const NAV = [
       { id: "sdk-stateful", label: "runix.stateful()" },
       { id: "sdk-batch", label: "runix.batch()" },
       { id: "sdk-stream", label: "runix.stream()" },
+      { id: "sdk-llm", label: "runix.llm()" },
     ],
   },
   {
@@ -123,9 +124,7 @@ function UL({ items }: { items: string[] }) {
   return (
     <ul style={{ paddingLeft: "1.2rem", marginBottom: 18, listStyle: "disc" }}>
       {items.map(s => (
-        <li key={s} style={{ fontSize: "clamp(14px, 2vw, 16px)", color: C.text, lineHeight: 1.85, marginBottom: 8 }}>
-          {s}
-        </li>
+        <li key={s} style={{ fontSize: "clamp(14px, 2vw, 16px)", color: C.text, lineHeight: 1.85, marginBottom: 8 }}>{s}</li>
       ))}
     </ul>
   );
@@ -134,10 +133,8 @@ function UL({ items }: { items: string[] }) {
 function OL({ items }: { items: string[] }) {
   return (
     <ol style={{ paddingLeft: "1.2rem", marginBottom: 18 }}>
-      {items.map((s, i) => (
-        <li key={s} style={{ fontSize: "clamp(14px, 2vw, 16px)", color: C.text, lineHeight: 1.85, marginBottom: 8 }}>
-          {s}
-        </li>
+      {items.map((s) => (
+        <li key={s} style={{ fontSize: "clamp(14px, 2vw, 16px)", color: C.text, lineHeight: 1.85, marginBottom: 8 }}>{s}</li>
       ))}
     </ol>
   );
@@ -180,12 +177,23 @@ const SECTIONS: Record<string, { title: string; headings: string[]; content: Rea
       <P>Runix is a machine-to-machine execution engine. Agents register an identity on the Arc blockchain, receive a Circle-managed USDC wallet, and submit jobs over HTTP - paying per execution in USDC with no subscriptions and no pre-provisioned infrastructure.</P>
       <P>Think of it as AWS Lambda without the deployment step, with crypto-native payments and on-chain identity built in.</P>
       <H2 id="how-it-works">How it works</H2>
-      <OL items={["Register - call POST /api/agents/register. You get an API key and wallet address.", "Fund - deposit USDC to your wallet on Arc Testnet.", "Execute - submit jobs via SDK or HTTP. Runix sandboxes, runs, and returns a signed result.", "Pay - USDC is deducted from your wallet per execution."]} />
+      <OL items={[
+        "Register - call POST /api/agents/register with your metadataUri. You get an API key and wallet address.",
+        "Fund - deposit USDC to your wallet on Arc Testnet.",
+        "Execute - submit jobs via SDK or HTTP. Runix sandboxes, runs, and returns a signed result.",
+        "Pay - USDC is deducted from your wallet per execution.",
+      ]} />
       <Callout type="info">Execution receipts are Ed25519-signed with SHA-256 hashed inputs and outputs - every result is cryptographically auditable.</Callout>
       <H2 id="when-to-use-it">When to use it</H2>
-      <UL items={["Autonomous agents that need to run code or call APIs inside a decision loop", "Event-driven systems with bursty, unpredictable compute needs", "Machine-to-machine value exchange without human billing", "On-chain identity and verifiable execution history"]} />
+      <UL items={[
+        "Autonomous agents that need to run code or call APIs inside a decision loop",
+        "Event-driven systems with bursty, unpredictable compute needs",
+        "Machine-to-machine value exchange without human billing",
+        "On-chain identity and verifiable execution history",
+      ]} />
     </>),
   },
+
   installation: {
     title: "Installation",
     headings: ["npm", "Requirements"],
@@ -198,112 +206,172 @@ const SECTIONS: Record<string, { title: string; headings: string[]; content: Rea
       <UL items={["Node.js 18+", "A Runix API key - see Authentication", "USDC on Arc Testnet in your wallet"]} />
     </>),
   },
+
   authentication: {
     title: "Authentication",
     headings: ["Register your agent", "Using your key"],
     content: (<>
       <P>Runix uses API keys tied to on-chain identities. Registration creates your API key and Circle wallet at the same time.</P>
       <H2 id="register-your-agent">Register your agent</H2>
-      <CodeBlock lang="ts">{`import { RunixClient } from "@basilgoodluck/runix-sdk";\n\nconst { apiKey, walletAddress, agentId } = await RunixClient.register({\n  name: "my-agent",\n});\n\nconsole.log(apiKey);        // rk_live_...\nconsole.log(walletAddress); // 0x...`}</CodeBlock>
-      <Callout type="warning">Never commit your API key to source control. Use environment variables.</Callout>
+      <CodeBlock lang="ts">{`import { RunixClient } from "@basilgoodluck/runix-sdk";\n\nconst agent = await RunixClient.register({\n  metadataUri: "https://your-metadata-uri.com/agent.json",\n});\n\nconsole.log(agent.apiKey);        // rx_abc123...\nconsole.log(agent.walletAddress); // 0x...\nconsole.log(agent.agentId);       // uuid`}</CodeBlock>
+      <Callout type="warning">Store your apiKey immediately - it is only returned once and cannot be recovered.</Callout>
       <H2 id="using-your-key">Using your key</H2>
       <CodeBlock lang="ts">{`const runix = new RunixClient({\n  apiKey: process.env.RUNIX_API_KEY,\n});`}</CodeBlock>
-      <P>The key is sent as a Bearer token on every request. All endpoints except <IC>/agents/register</IC> require it.</P>
+      <P>The key is sent as a Bearer token on every request. All endpoints except <IC>/api/agents/register</IC> require it.</P>
     </>),
   },
+
   quickstart: {
     title: "Quickstart",
     headings: ["Register", "Fund your wallet", "Run your first job"],
     content: (<>
       <P>Zero to a running execution in under five minutes.</P>
       <H2 id="register">1. Register</H2>
-      <CodeBlock lang="ts">{`const { apiKey, walletAddress } = await RunixClient.register({\n  name: "quickstart-agent",\n});`}</CodeBlock>
+      <CodeBlock lang="ts">{`import { RunixClient } from "@basilgoodluck/runix-sdk";\n\nconst agent = await RunixClient.register({\n  metadataUri: "https://your-metadata-uri.com/agent.json",\n});\n\n// Save agent.apiKey somewhere safe - it is only shown once`}</CodeBlock>
       <H2 id="fund-your-wallet">2. Fund your wallet</H2>
       <P>Send testnet USDC to your <IC>walletAddress</IC> on Arc Testnet using the Arc faucet or Circle Gateway.</P>
       <H2 id="run-your-first-job">3. Run your first job</H2>
-      <CodeBlock lang="ts">{`const runix = new RunixClient({ apiKey });\n\nconst result = await runix.compute({\n  runtime: "python",\n  code: "print(21 * 2)",\n});\n\nconsole.log(result.stdout);      // "42"\nconsole.log(result.duration_ms); // e.g. 38\nconsole.log(result.cost_usd);    // e.g. 0.000003`}</CodeBlock>
-      <Callout type="tip">Check result.status before reading result.stdout. "error" means the code ran but exited non-zero.</Callout>
+      <CodeBlock lang="ts">{`const runix = new RunixClient({ apiKey: agent.apiKey });\n\nconst result = await runix.compute({\n  runtime: "node",\n  code: "console.log(21 * 2)",\n});\n\nconsole.log(result.stdout);    // "42"\nconsole.log(result.durationMs); // e.g. 38\nconsole.log(result.costUsd);    // e.g. 0.000003`}</CodeBlock>
+      <Callout type="tip">Check <IC>result.status</IC> before reading <IC>result.stdout</IC>. A status of <IC>"failed"</IC> means the code ran but exited non-zero.</Callout>
     </>),
   },
+
   "sdk-overview": {
     title: "SDK Overview",
     headings: ["Client setup", "Response shape", "Error handling"],
     content: (<>
       <P><IC>RunixClient</IC> is the single entry point for all SDK operations.</P>
       <H2 id="client-setup">Client setup</H2>
-      <CodeBlock lang="ts">{`import { RunixClient } from "@basilgoodluck/runix-sdk";\n\nconst runix = new RunixClient({\n  apiKey: process.env.RUNIX_API_KEY,\n  baseUrl: "https://runix.basilgoodluck.com",\n  timeout: 30_000,\n});`}</CodeBlock>
+      <CodeBlock lang="ts">{`import { RunixClient } from "@basilgoodluck/runix-sdk";\n\nconst runix = new RunixClient({\n  apiKey: process.env.RUNIX_API_KEY,   // required\n  baseUrl: "https://runix.basilgoodluck.com", // optional\n  timeoutMs: 30_000,                   // optional, default 30000\n});`}</CodeBlock>
       <H2 id="response-shape">Response shape</H2>
-      <CodeBlock lang="ts">{`interface ExecutionResult {\n  id: string;\n  status: "done" | "error" | "timeout" | "cached";\n  stdout: string;\n  stderr: string;\n  duration_ms: number;\n  cost_usd: number;\n  session_id: string | null;\n  cached: boolean;\n  receipt: {\n    id: string;\n    input_hash: string;\n    output_hash: string;\n    signature: string;\n    timestamp: number;\n  };\n}`}</CodeBlock>
+      <CodeBlock lang="ts">{`interface ExecutionResult {\n  id: string;\n  type: JobType;\n  status: "pending" | "running" | "done" | "failed" | "timeout";\n  stdout?: string;\n  stderr?: string;\n  exitCode?: number;\n  output?: unknown;\n  error?: string;\n  durationMs: number;\n  costUsd?: number;\n  cached?: boolean;\n  paymentId?: string;\n  receipt?: {\n    id: string;\n    inputHash: string;\n    outputHash: string;\n    signature: string;\n    timestamp: number;\n  };\n  // batch only\n  results?: ExecutionResult[];\n  summary?: {\n    total: number;\n    succeeded: number;\n    failed: number;\n    totalCostUsd: number;\n  };\n}`}</CodeBlock>
       <H2 id="error-handling">Error handling</H2>
-      <CodeBlock lang="ts">{`import { RunixError } from "@basilgoodluck/runix-sdk";\n\ntry {\n  const result = await runix.compute({ runtime: "python", code: "..." });\n} catch (err) {\n  if (err instanceof RunixError) {\n    console.log(err.code);\n    console.log(err.status);\n  }\n}`}</CodeBlock>
+      <CodeBlock lang="ts">{`import { RunixClient, RunixError } from "@basilgoodluck/runix-sdk";\n\ntry {\n  const result = await runix.compute({ runtime: "node", code: "..." });\n} catch (err) {\n  if (err instanceof RunixError) {\n    console.log(err.statusCode); // e.g. 401, 429, 500\n    console.log(err.message);   // human-readable error\n  }\n}`}</CodeBlock>
     </>),
   },
+
   "sdk-compute": {
     title: "runix.compute()",
     headings: ["Parameters", "Example"],
     content: (<>
       <P>Run arbitrary code in an isolated Docker sandbox. Memory-capped, CPU-capped, no network access, read-only filesystem.</P>
       <H2 id="parameters">Parameters</H2>
-      <ParamTable rows={[{ name: "runtime", type: "Runtime", req: true, desc: '"python" | "node" | "go"' }, { name: "code", type: "string", req: true, desc: "Source code to execute" }, { name: "stdin", type: "string", req: false, desc: "Input piped to stdin" }, { name: "timeout_ms", type: "number", req: false, desc: "Max execution time. Default: 10000" }, { name: "env", type: "Record<string,string>", req: false, desc: "Environment variables injected into the sandbox" }]} />
+      <ParamTable rows={[
+        { name: "runtime", type: "Runtime", req: true,  desc: '"python" | "node" | "typescript" | "go" | "rust" | "bash" | "c" | "java" | "ruby" | "php"' },
+        { name: "code",    type: "string",  req: true,  desc: "Source code to execute" },
+        { name: "stdin",   type: "string",  req: false, desc: "Input piped to stdin" },
+        { name: "env",     type: "Record<string,string>", req: false, desc: "Environment variables injected into the sandbox" },
+        { name: "timeoutMs", type: "number", req: false, desc: "Max execution time in ms. Default: 10000" },
+      ]} />
       <H2 id="example">Example</H2>
-      <CodeBlock lang="ts">{`const result = await runix.compute({\n  runtime: "node",\n  code: \`const nums = [1,2,3,4,5];\nconst avg = nums.reduce((a,b)=>a+b)/nums.length;\nconsole.log(avg);\`,\n  timeout_ms: 5000,\n});\n\nconsole.log(result.stdout); // "3"`}</CodeBlock>
+      <CodeBlock lang="ts">{`const result = await runix.compute({\n  runtime: "node",\n  code: \`const nums = [1,2,3,4,5];\nconst avg = nums.reduce((a,b)=>a+b)/nums.length;\nconsole.log(avg);\`,\n  timeoutMs: 5000,\n});\n\nconsole.log(result.stdout);   // "3"\nconsole.log(result.durationMs); // e.g. 42\nconsole.log(result.costUsd);    // e.g. 0.000003`}</CodeBlock>
     </>),
   },
+
   "sdk-action": {
     title: "runix.action()",
     headings: ["Parameters", "Example"],
     content: (<>
       <P>Call any external HTTP service through Runix. Handles retries on 5xx and timeout enforcement.</P>
       <H2 id="parameters">Parameters</H2>
-      <ParamTable rows={[{ name: "url", type: "string", req: true, desc: "Full URL of the service to call" }, { name: "method", type: "string", req: false, desc: '"GET" | "POST" | "PUT" | "DELETE". Default: "GET"' }, { name: "headers", type: "Record<string,string>", req: false, desc: "Request headers" }, { name: "body", type: "unknown", req: false, desc: "Request body - auto-serialized to JSON" }, { name: "retries", type: "number", req: false, desc: "Retry count on 5xx. Default: 2" }]} />
+      <ParamTable rows={[
+        { name: "url",       type: "string",  req: true,  desc: "Full URL of the service to call" },
+        { name: "method",    type: "HttpMethod", req: false, desc: '"GET" | "POST" | "PUT" | "DELETE" | "PATCH". Default: "GET"' },
+        { name: "headers",   type: "Record<string,string>", req: false, desc: "Request headers" },
+        { name: "body",      type: "unknown", req: false, desc: "Request body - auto-serialized to JSON" },
+        { name: "retries",   type: "number",  req: false, desc: "Retry count on 5xx. Default: 2" },
+        { name: "timeoutMs", type: "number",  req: false, desc: "Request timeout in ms. Default: 15000" },
+      ]} />
       <H2 id="example">Example</H2>
-      <CodeBlock lang="ts">{`const result = await runix.action({\n  url: "https://api.example.com/data",\n  method: "GET",\n  headers: { Authorization: \`Bearer \${token}\` },\n});\n\nconst data = JSON.parse(result.stdout);`}</CodeBlock>
+      <CodeBlock lang="ts">{`const result = await runix.action({\n  url: "https://api.example.com/data",\n  method: "GET",\n  headers: { Authorization: \`Bearer \${token}\` },\n});\n\nconst data = result.output?.data;`}</CodeBlock>
     </>),
   },
+
   "sdk-data": {
     title: "runix.data()",
     headings: ["Parameters", "Example"],
     content: (<>
-      <P>Fetch and parse structured data sources. Results come back ready to use.</P>
+      <P>Fetch and optionally scrape structured content from a URL.</P>
       <H2 id="parameters">Parameters</H2>
-      <ParamTable rows={[{ name: "source", type: "string", req: true, desc: "URL or data source identifier" }, { name: "format", type: "string", req: false, desc: '"json" | "csv" | "xml" - auto-detected if omitted' }, { name: "query", type: "string", req: false, desc: "JSONPath filter applied to the result" }]} />
+      <ParamTable rows={[
+        { name: "mode",      type: "string",  req: true,  desc: '"fetch" - retrieve raw content | "scrape" - extract via CSS selector' },
+        { name: "url",       type: "string",  req: true,  desc: "URL to fetch or scrape" },
+        { name: "selector",  type: "string",  req: false, desc: "CSS selector - required when mode is scrape" },
+        { name: "timeoutMs", type: "number",  req: false, desc: "Request timeout in ms" },
+      ]} />
       <H2 id="example">Example</H2>
-      <CodeBlock lang="ts">{`const result = await runix.data({\n  source: "https://data.example.com/market.json",\n  format: "json",\n  query: "$.assets[?(@.symbol == 'USDC')]",\n});\n\nconst asset = JSON.parse(result.stdout);`}</CodeBlock>
+      <CodeBlock lang="ts">{`// Fetch JSON\nconst result = await runix.data({\n  mode: "fetch",\n  url: "https://api.example.com/market.json",\n});\n\nconst data = result.output?.data;\n\n// Scrape HTML\nconst scraped = await runix.data({\n  mode: "scrape",\n  url: "https://example.com",\n  selector: "h1",\n});`}</CodeBlock>
     </>),
   },
+
   "sdk-stateful": {
     title: "runix.stateful()",
     headings: ["Parameters", "Example"],
     content: (<>
-      <P>Execute code with persistent session state across multiple steps. Sessions expire after 30 minutes of inactivity.</P>
+      <P>Persist and retrieve key-value state across executions. Useful for agents that need memory between steps. Keys support an optional TTL.</P>
       <H2 id="parameters">Parameters</H2>
-      <ParamTable rows={[{ name: "runtime", type: "Runtime", req: true, desc: '"python" | "node" | "go"' }, { name: "code", type: "string", req: true, desc: "Code to run in this step" }, { name: "session_id", type: "string", req: false, desc: "Continue an existing session. Omit to start a new one." }, { name: "timeout_ms", type: "number", req: false, desc: "Step timeout. Default: 10000" }]} />
+      <ParamTable rows={[
+        { name: "op",    type: "StatefulOp", req: true,  desc: '"get" | "set" | "delete" | "exists"' },
+        { name: "key",   type: "string",     req: true,  desc: "State key to operate on" },
+        { name: "value", type: "unknown",    req: false, desc: "Value to store - required for op: set" },
+        { name: "ttl",   type: "number",     req: false, desc: "Time to live in seconds - optional for op: set" },
+      ]} />
       <H2 id="example">Example</H2>
-      <CodeBlock lang="ts">{`const step1 = await runix.stateful({\n  runtime: "python",\n  code: "total = 0",\n});\n\nconst step2 = await runix.stateful({\n  session_id: step1.session_id!,\n  runtime: "python",\n  code: "total += 42\\nprint(total)",\n});\n\nconsole.log(step2.stdout); // "42"`}</CodeBlock>
+      <CodeBlock lang="ts">{`// Store state\nawait runix.stateful({\n  op: "set",\n  key: "agent:progress",\n  value: { step: 3, total: 10 },\n  ttl: 3600,\n});\n\n// Retrieve state\nconst result = await runix.stateful({\n  op: "get",\n  key: "agent:progress",\n});\n\nconsole.log(result.output); // { step: 3, total: 10 }\n\n// Check existence\nconst exists = await runix.stateful({\n  op: "exists",\n  key: "agent:progress",\n});\n\n// Delete\nawait runix.stateful({\n  op: "delete",\n  key: "agent:progress",\n});`}</CodeBlock>
     </>),
   },
+
   "sdk-batch": {
     title: "runix.batch()",
     headings: ["Parameters", "Example"],
     content: (<>
-      <P>Submit multiple jobs in one call. Jobs run concurrently. Results come back in submission order.</P>
+      <P>Submit multiple jobs in one call. Jobs run concurrently up to the concurrency limit. Results come back in submission order.</P>
       <H2 id="parameters">Parameters</H2>
-      <ParamTable rows={[{ name: "jobs", type: "Job[]", req: true, desc: "Array of compute, action, or data payloads" }, { name: "concurrency", type: "number", req: false, desc: "Max parallel jobs. Default: all at once" }]} />
+      <ParamTable rows={[
+        { name: "jobs",        type: "Job[]",  req: true,  desc: "Array of compute, action, data, or stateful payloads - each with a type field" },
+        { name: "concurrency", type: "number", req: false, desc: "Max parallel jobs. Default: all at once" },
+        { name: "failFast",    type: "boolean", req: false, desc: "Stop all jobs on first failure. Default: false" },
+        { name: "timeoutMs",   type: "number", req: false, desc: "Timeout applied to the entire batch" },
+      ]} />
       <H2 id="example">Example</H2>
-      <CodeBlock lang="ts">{`const batch = await runix.batch({\n  jobs: [\n    { type: "compute", runtime: "python", code: "print(1 + 1)" },\n    { type: "compute", runtime: "node",   code: "console.log(2 + 2)" },\n  ],\n  concurrency: 2,\n});\n\nconsole.log(batch.results[0].stdout);\nconsole.log(batch.total_cost_usd);`}</CodeBlock>
+      <CodeBlock lang="ts">{`const batch = await runix.batch({\n  jobs: [\n    { type: "compute", runtime: "node",   code: "console.log(1 + 1)" },\n    { type: "compute", runtime: "python", code: "print(2 + 2)" },\n    { type: "action",  url: "https://api.example.com/ping", method: "GET" },\n  ],\n  concurrency: 3,\n});\n\nconsole.log(batch.results[0].stdout); // "2"\nconsole.log(batch.summary?.totalCostUsd);`}</CodeBlock>
     </>),
   },
+
   "sdk-stream": {
     title: "runix.stream()",
-    headings: ["Event shape", "Example"],
+    headings: ["Chunk shape", "Example"],
     content: (<>
-      <P>Stream compute output in real time via Server-Sent Events. Same parameters as <IC>runix.compute()</IC>.</P>
-      <H2 id="event-shape">Event shape</H2>
-      <CodeBlock lang="ts">{`type StreamEvent =\n  | { type: "stdout";  data: string }\n  | { type: "stderr";  data: string }\n  | { type: "done";    id: string; duration_ms: number; cost_usd: number }\n  | { type: "error";   message: string };`}</CodeBlock>
+      <P>Stream compute output in real time via Server-Sent Events. Takes the same parameters as <IC>runix.compute()</IC> and returns an async generator of <IC>StreamChunk</IC>.</P>
+      <H2 id="chunk-shape">Chunk shape</H2>
+      <CodeBlock lang="ts">{`interface StreamChunk {\n  type: "stdout" | "stderr" | "exit" | "error";\n  data: string;\n  timestamp: number;\n}`}</CodeBlock>
       <H2 id="example">Example</H2>
-      <CodeBlock lang="ts">{`for await (const event of runix.stream({ runtime: "python", code: "..." })) {\n  if (event.type === "stdout") process.stdout.write(event.data);\n  if (event.type === "done")   console.log("cost:", event.cost_usd);\n}`}</CodeBlock>
+      <CodeBlock lang="ts">{`for await (const chunk of runix.stream({ runtime: "node", code: "..." })) {\n  if (chunk.type === "stdout") process.stdout.write(chunk.data);\n  if (chunk.type === "stderr") process.stderr.write(chunk.data);\n  if (chunk.type === "exit")   console.log("exited:", chunk.data);\n  if (chunk.type === "error")  console.error("error:", chunk.data);\n}`}</CodeBlock>
     </>),
   },
+
+  "sdk-llm": {
+    title: "runix.llm()",
+    headings: ["Parameters", "Example"],
+    content: (<>
+      <P>Call an LLM provider through Runix. The call is sandboxed, billed, and receipted like every other job type. Supports Gemini, OpenAI, or any custom endpoint.</P>
+      <H2 id="parameters">Parameters</H2>
+      <ParamTable rows={[
+        { name: "prompt",       type: "string",  req: true,  desc: "The user prompt" },
+        { name: "systemPrompt", type: "string",  req: false, desc: "System prompt / persona" },
+        { name: "provider",     type: "string",  req: false, desc: '"gemini" | "openai" | "custom". Default: "gemini"' },
+        { name: "model",        type: "string",  req: false, desc: 'Model name. Default: gemini-2.0-flash / gpt-4o-mini' },
+        { name: "endpoint",     type: "string",  req: false, desc: "Required if provider is custom" },
+        { name: "apiKey",       type: "string",  req: false, desc: "Overrides env var if provided" },
+        { name: "headers",      type: "Record<string,string>", req: false, desc: "Extra request headers" },
+        { name: "retries",      type: "number",  req: false, desc: "Retry count on 5xx. Default: 2" },
+        { name: "timeoutMs",    type: "number",  req: false, desc: "Max time in ms. Default: 30000" },
+      ]} />
+      <H2 id="example">Example</H2>
+      <CodeBlock lang="ts">{`const result = await runix.llm({\n  prompt: "Summarize this in one sentence: " + content,\n  systemPrompt: "You are a concise summarizer. Plain text only.",\n  provider: "gemini",\n});\n\nconsole.log(result.text);      // ready to use, no parsing needed\nconsole.log(result.costUsd);   // billed like every other job\nconsole.log(result.receipt);   // Ed25519 signed receipt`}</CodeBlock>
+    </>),
+  },
+
   "api-register": {
     title: "POST /agents/register",
     headings: ["Request body", "Response", "Example"],
@@ -315,14 +383,17 @@ const SECTIONS: Record<string, { title: string; headings: string[]; content: Rea
       </div>
       <CodeBlock lang="bash">{`POST https://runix.basilgoodluck.com/api/agents/register`}</CodeBlock>
       <H2 id="request-body">Request body</H2>
-      <ParamTable rows={[{ name: "name", type: "string", req: true, desc: "Human-readable agent name - stored on-chain" }, { name: "metadata_uri", type: "string", req: false, desc: "IPFS URI pointing to agent metadata JSON" }]} />
+      <ParamTable rows={[
+        { name: "metadataUri", type: "string", req: true, desc: "IPFS or HTTPS URI pointing to your agent metadata JSON - stored on-chain" },
+      ]} />
       <H2 id="response">Response</H2>
-      <CodeBlock lang="json">{`{\n  "api_key": "rk_live_abc123...",\n  "wallet_address": "0xabc...",\n  "agent_id": "0x...",\n  "registration_tx": "0x..."\n}`}</CodeBlock>
-      <Callout type="warning">Store your api_key immediately - it is only returned once.</Callout>
+      <CodeBlock lang="json">{`{\n  "agentId": "uuid",\n  "apiKey": "rx_abc123...",\n  "walletAddress": "0xabc...",\n  "onchainAgentId": "0x...",\n  "txHash": "0x...",\n  "metadataUri": "https://...",\n  "createdAt": 1714000000000,\n  "message": "Fund your wallet with USDC on Arc Testnet to start submitting jobs"\n}`}</CodeBlock>
+      <Callout type="warning">Store your <IC>apiKey</IC> immediately - it is only returned once and cannot be recovered.</Callout>
       <H2 id="example">Example</H2>
-      <CodeBlock lang="bash">{`curl -X POST https://runix.basilgoodluck.com/api/agents/register \\\n  -H "Content-Type: application/json" \\\n  -d '{ "name": "my-agent" }'`}</CodeBlock>
+      <CodeBlock lang="bash">{`curl -X POST https://runix.basilgoodluck.com/api/agents/register \\\n  -H "Content-Type: application/json" \\\n  -d '{ "metadataUri": "https://your-metadata-uri.com/agent.json" }'`}</CodeBlock>
     </>),
   },
+
   "api-execute": {
     title: "POST /execute",
     headings: ["Request body", "Job types", "Response", "Example"],
@@ -334,18 +405,36 @@ const SECTIONS: Record<string, { title: string; headings: string[]; content: Rea
       </div>
       <CodeBlock lang="bash">{`POST https://runix.basilgoodluck.com/api/execute\nAuthorization: Bearer <your-api-key>`}</CodeBlock>
       <H2 id="request-body">Request body</H2>
-      <ParamTable rows={[{ name: "type", type: "string", req: true, desc: '"compute" | "action" | "data" | "stateful" | "batch" | "file"' }, { name: "runtime", type: "string", req: false, desc: 'Required for compute, stateful, file. "python" | "node" | "go"' }, { name: "code", type: "string", req: false, desc: "Required for compute, stateful, file" }, { name: "url", type: "string", req: false, desc: "Required for action" }, { name: "session_id", type: "string", req: false, desc: "Continue a stateful session" }, { name: "timeout_ms", type: "number", req: false, desc: "Max execution time in ms. Default: 10000" }]} />
+      <ParamTable rows={[
+        { name: "type",       type: "string",  req: true,  desc: '"compute" | "action" | "data" | "stateful" | "batch" | "file" | "llm"' },
+        { name: "runtime",    type: "Runtime", req: false, desc: 'Required for compute and file. "python" | "node" | "typescript" | "go" | "rust" | "bash" | "c" | "java" | "ruby" | "php"' },
+        { name: "code",       type: "string",  req: false, desc: "Required for compute and file" },
+        { name: "url",        type: "string",  req: false, desc: "Required for action and data" },
+        { name: "prompt",     type: "string",  req: false, desc: "Required for llm" },
+        { name: "op",         type: "string",  req: false, desc: 'Required for stateful. "get" | "set" | "delete" | "exists"' },
+        { name: "key",        type: "string",  req: false, desc: "Required for stateful" },
+        { name: "timeoutMs",  type: "number",  req: false, desc: "Max execution time in ms. Default: 10000" },
+      ]} />
       <H2 id="job-types">Job types</H2>
-      <UL items={["compute - run code in a sandboxed runtime", "action - call an external HTTP service", "data - fetch and parse a structured source", "stateful - code execution with persistent session", "batch - multiple jobs in one request", "file - code execution with virtual filesystem inputs"]} />
+      <UL items={[
+        "compute - run code in a sandboxed runtime",
+        "action - call an external HTTP service",
+        "data - fetch or scrape a URL",
+        "stateful - get/set/delete persistent key-value state",
+        "batch - multiple jobs in one request, run concurrently",
+        "file - code execution with virtual filesystem inputs",
+        "llm - call an LLM provider (Gemini, OpenAI, or custom endpoint)",
+      ]} />
       <H2 id="response">Response</H2>
-      <CodeBlock lang="json">{`{\n  "id": "exec_9f3a1c",\n  "status": "done",\n  "stdout": "42",\n  "stderr": "",\n  "duration_ms": 38,\n  "cost_usd": 0.000003,\n  "session_id": null,\n  "cached": false,\n  "receipt": {\n    "id": "rcpt_abc",\n    "input_hash": "sha256:...",\n    "output_hash": "sha256:...",\n    "signature": "ed25519:...",\n    "timestamp": 1714000000\n  }\n}`}</CodeBlock>
+      <CodeBlock lang="json">{`{\n  "id": "exec_9f3a1c",\n  "type": "compute",\n  "status": "done",\n  "stdout": "42",\n  "stderr": "",\n  "exitCode": 0,\n  "durationMs": 38,\n  "costUsd": 0.000003,\n  "cached": false,\n  "paymentId": "pay_abc...",\n  "receipt": {\n    "id": "rcpt_abc",\n    "inputHash": "sha256:...",\n    "outputHash": "sha256:...",\n    "signature": "ed25519:...",\n    "timestamp": 1714000000\n  }\n}`}</CodeBlock>
       <H2 id="example">Example</H2>
-      <CodeBlock lang="bash">{`curl -X POST https://runix.basilgoodluck.com/api/execute \\\n  -H "Authorization: Bearer $RUNIX_API_KEY" \\\n  -H "Content-Type: application/json" \\\n  -d '{ "type": "compute", "runtime": "python", "code": "print(21 * 2)" }'`}</CodeBlock>
+      <CodeBlock lang="bash">{`curl -X POST https://runix.basilgoodluck.com/api/execute \\\n  -H "Authorization: Bearer $RUNIX_API_KEY" \\\n  -H "Content-Type: application/json" \\\n  -d '{ "type": "compute", "runtime": "node", "code": "console.log(21 * 2)" }'`}</CodeBlock>
     </>),
   },
+
   "api-stream": {
     title: "POST /execute/stream",
-    headings: ["SSE event format", "Example"],
+    headings: ["SSE chunk format", "Example"],
     content: (<>
       <P>Stream compute output via Server-Sent Events. Only supports <IC>type: "compute"</IC>.</P>
       <div style={{ display: "flex", gap: 8, marginBottom: 18, flexWrap: "wrap" }}>
@@ -353,12 +442,14 @@ const SECTIONS: Record<string, { title: string; headings: string[]; content: Rea
         <Badge label="Requires API key" color="red" />
       </div>
       <CodeBlock lang="bash">{`POST https://runix.basilgoodluck.com/api/execute/stream\nAuthorization: Bearer <your-api-key>`}</CodeBlock>
-      <H2 id="sse-event-format">SSE event format</H2>
-      <CodeBlock lang="text">{`event: stdout\ndata: Step 1\n\nevent: done\ndata: {"id":"exec_abc","duration_ms":1240,"cost_usd":0.000003}`}</CodeBlock>
+      <H2 id="sse-chunk-format">SSE chunk format</H2>
+      <CodeBlock lang="text">{`data: {"type":"stdout","data":"hello\\n","timestamp":1714000000}\n\ndata: {"type":"stderr","data":"","timestamp":1714000001}\n\ndata: {"type":"exit","data":"0","timestamp":1714000002}`}</CodeBlock>
+      <Callout type="info">Chunks are <IC>StreamChunk</IC> objects with <IC>type</IC>, <IC>data</IC>, and <IC>timestamp</IC> fields. The stream ends on <IC>exit</IC> or <IC>error</IC>.</Callout>
       <H2 id="example">Example</H2>
-      <CodeBlock lang="bash">{`curl -X POST https://runix.basilgoodluck.com/api/execute/stream \\\n  -H "Authorization: Bearer $RUNIX_API_KEY" \\\n  -H "Accept: text/event-stream" \\\n  -H "Content-Type: application/json" \\\n  -d '{ "type": "compute", "runtime": "python", "code": "for i in range(5): print(i)" }'`}</CodeBlock>
+      <CodeBlock lang="bash">{`curl -X POST https://runix.basilgoodluck.com/api/execute/stream \\\n  -H "Authorization: Bearer $RUNIX_API_KEY" \\\n  -H "Accept: text/event-stream" \\\n  -H "Content-Type: application/json" \\\n  -d '{ "type": "compute", "runtime": "node", "code": "for(let i=0;i<5;i++) console.log(i)" }'`}</CodeBlock>
     </>),
   },
+
   "api-balance": {
     title: "GET /billing/balance",
     headings: ["Response", "Example"],
@@ -370,16 +461,17 @@ const SECTIONS: Record<string, { title: string; headings: string[]; content: Rea
       </div>
       <CodeBlock lang="bash">{`GET https://runix.basilgoodluck.com/api/billing/balance`}</CodeBlock>
       <H2 id="response">Response</H2>
-      <CodeBlock lang="json">{`{\n  "balance_usd": "4.820000",\n  "wallet_address": "0xabc...",\n  "currency": "USDC",\n  "chain": "arc-testnet"\n}`}</CodeBlock>
+      <CodeBlock lang="json">{`{\n  "agentId": "uuid",\n  "walletAddress": "0xabc...",\n  "balance": "4.820000"\n}`}</CodeBlock>
       <H2 id="example">Example</H2>
       <CodeBlock lang="bash">{`curl https://runix.basilgoodluck.com/api/billing/balance \\\n  -H "Authorization: Bearer $RUNIX_API_KEY"`}</CodeBlock>
     </>),
   },
+
   "api-errors": {
     title: "Errors",
     headings: ["Error shape", "Status codes"],
     content: (<>
-      <P>All errors return a consistent JSON shape. The SDK wraps these as <IC>RunixError</IC> instances.</P>
+      <P>All errors return a consistent JSON shape. The SDK wraps these as <IC>RunixError</IC> instances with a <IC>statusCode</IC> and <IC>message</IC>.</P>
       <H2 id="error-shape">Error shape</H2>
       <CodeBlock lang="json">{`{\n  "error": {\n    "code": "insufficient_balance",\n    "message": "Agent wallet has insufficient USDC.",\n    "param": null\n  }\n}`}</CodeBlock>
       <H2 id="status-codes">Status codes</H2>
@@ -391,7 +483,14 @@ const SECTIONS: Record<string, { title: string; headings: string[]; content: Rea
             </tr>
           </thead>
           <tbody>
-            {[["400","Bad request - missing or invalid parameters"],["401","Unauthorized - missing or invalid API key"],["403","Forbidden - key lacks required scope"],["408","Execution timed out"],["429","Rate limit exceeded"],["500","Internal server error"]].map(([code, msg]) => (
+            {[
+              ["400", "Bad request - missing or invalid parameters"],
+              ["401", "Unauthorized - missing or invalid API key"],
+              ["403", "Forbidden - key lacks required scope"],
+              ["408", "Execution timed out"],
+              ["429", "Rate limit exceeded"],
+              ["500", "Internal server error"],
+            ].map(([code, msg]) => (
               <tr key={code} style={{ borderBottom: `1px solid ${C.border}` }}>
                 <td style={{ padding: "11px 14px 11px 0" }}><IC>{code}</IC></td>
                 <td style={{ padding: "11px 0", fontSize: "clamp(13px, 1.8vw, 15px)", color: C.text }}>{msg}</td>
@@ -400,39 +499,66 @@ const SECTIONS: Record<string, { title: string; headings: string[]; content: Rea
           </tbody>
         </table>
       </div>
-      <Callout type="warning">A 200 OK with status: "error" means the code ran but exited non-zero - different from a 4xx/5xx HTTP error.</Callout>
+      <Callout type="warning">A 200 OK with <IC>status: "failed"</IC> means the code ran but exited non-zero - different from a 4xx/5xx HTTP error.</Callout>
     </>),
   },
+
   "guide-agents": {
     title: "Agent Integration",
     headings: ["Decision loop pattern", "Best practices"],
     content: (<>
       <P>Runix sits inside an agent's decision loop - called whenever the agent needs to act on the world rather than reason about it.</P>
       <H2 id="decision-loop-pattern">Decision loop pattern</H2>
-      <CodeBlock lang="ts">{`const runix = new RunixClient({ apiKey: process.env.RUNIX_API_KEY });\n\nasync function agentLoop(task: string) {\n  while (true) {\n    const action = await llm.decide(task);\n    if (action.type === "done") break;\n\n    const result = await runix.compute({\n      runtime: action.runtime,\n      code: action.code,\n      timeout_ms: 15_000,\n    });\n\n    if (result.status === "error") {\n      task = \`Previous step failed: \${result.stderr}. Retry.\`;\n      continue;\n    }\n\n    task = incorporateResult(task, result.stdout);\n  }\n}`}</CodeBlock>
+      <CodeBlock lang="ts">{`const runix = new RunixClient({ apiKey: process.env.RUNIX_API_KEY });\n\nasync function agentLoop(task: string) {\n  while (true) {\n    // LLM decides next action\n    const action = await llm.decide(task);\n    if (action.type === "done") break;\n\n    // Runix executes it\n    const result = await runix.compute({\n      runtime: action.runtime,\n      code: action.code,\n      timeoutMs: 15_000,\n    });\n\n    if (result.status === "failed") {\n      task = \`Previous step failed: \${result.stderr}. Retry.\`;\n      continue;\n    }\n\n    task = incorporateResult(task, result.stdout);\n  }\n}`}</CodeBlock>
       <H2 id="best-practices">Best practices</H2>
-      <UL items={["Store result.id - you can look up any past execution for auditing", "Set timeout_ms explicitly in production - don't rely on the default", "Use runix.batch() when your agent needs multiple independent results at once", "Check result.cached - repeated identical calls return instantly at no cost", "Monitor result.cost_usd per step to track spend in real time"]} />
+      <UL items={[
+        "Store result.id - you can look up any past execution for auditing",
+        "Set timeoutMs explicitly in production - don't rely on the default",
+        "Use runix.batch() when your agent needs multiple independent results at once",
+        "Check result.cached - repeated identical calls return instantly at no cost",
+        "Monitor result.costUsd per step to track spend in real time",
+        "Use runix.llm() for LLM calls so they are billed and receipted like all other jobs",
+      ]} />
     </>),
   },
+
   "guide-sandbox": {
     title: "Sandbox & Security",
     headings: ["Docker isolation", "What code cannot do"],
     content: (<>
-      <P>Every compute, stateful, and file job runs inside a Docker container with strict isolation, with a pre-warmed pool per language runtime.</P>
+      <P>Every compute, file, and llm job runs inside a Docker container with strict isolation, with a pre-warmed pool per language runtime.</P>
       <H2 id="docker-isolation">Docker isolation</H2>
-      <UL items={["Read-only root filesystem", "No network access from inside the container", "All Linux capabilities dropped", "PidsLimit enforced to prevent fork bombs", "Containers discarded after each job - no state leaks", "Memory and CPU caps enforced by Docker cgroup"]} />
+      <UL items={[
+        "Read-only root filesystem",
+        "No network access from inside the container",
+        "All Linux capabilities dropped",
+        "PidsLimit enforced to prevent fork bombs",
+        "Containers discarded after each job - no state leaks",
+        "Memory and CPU caps enforced by Docker cgroup",
+      ]} />
       <Callout type="info">Container pools replenish automatically after each job. Under high concurrency, jobs queue in BullMQ until a container is available.</Callout>
       <H2 id="what-code-cannot-do">What code cannot do</H2>
-      <UL items={["Make outbound network requests - use runix.action() instead", "Access the host filesystem", "Spawn privileged processes", "Persist files between separate compute jobs - use runix.stateful() or runix.file()"]} />
+      <UL items={[
+        "Make outbound network requests - use runix.action() instead",
+        "Access the host filesystem",
+        "Spawn privileged processes",
+        "Persist data between separate compute jobs - use runix.stateful() for persistence",
+      ]} />
     </>),
   },
+
   "guide-billing": {
     title: "Billing & USDC",
     headings: ["How billing works", "Pricing", "Funding your wallet"],
     content: (<>
       <P>Runix charges per execution in USDC on Arc Testnet. Payment deducts from your Circle-managed wallet immediately after each successful job.</P>
       <H2 id="how-billing-works">How billing works</H2>
-      <OL items={["Your wallet holds a USDC balance on Arc Testnet", "After each execution, Runix calculates cost via pricing.service.ts", "A Circle SDK transfer deducts from your wallet to the Runix system wallet", "The amount appears in result.cost_usd and in your billing history"]} />
+      <OL items={[
+        "Your wallet holds a USDC balance on Arc Testnet",
+        "After each execution, Runix calculates cost based on job type",
+        "A Circle SDK transfer deducts from your wallet to the Runix system wallet",
+        "The amount appears in result.costUsd and in your billing history",
+      ]} />
       <Callout type="info">Payment failures are currently silent - jobs succeed even if the deduction fails. This changes before mainnet.</Callout>
       <H2 id="pricing">Pricing</H2>
       <div style={{ overflowX: "auto", margin: "18px 0", borderRadius: 10, border: `1px solid ${C.border}`, background: C.surface }}>
@@ -443,7 +569,15 @@ const SECTIONS: Record<string, { title: string; headings: string[]; content: Rea
             </tr>
           </thead>
           <tbody>
-            {[["compute","$0.000003 per execution"],["action","$0.000001 per execution"],["data","$0.000001 per execution"],["stateful","$0.000002 per step"],["batch","Sum of individual job costs"],["file","$0.000003 per execution"]].map(([type, cost]) => (
+            {[
+              ["compute",  "$0.000003 per execution"],
+              ["action",   "$0.000001 per execution"],
+              ["data",     "$0.000001 per execution"],
+              ["stateful", "$0.000001 per operation"],
+              ["batch",    "Sum of individual job costs"],
+              ["file",     "$0.000003 per execution"],
+              ["llm",      "$0.000010 per call"],
+            ].map(([type, cost]) => (
               <tr key={type} style={{ borderBottom: `1px solid ${C.border}` }}>
                 <td style={{ padding: "11px 14px 11px 0" }}><IC>{type}</IC></td>
                 <td style={{ padding: "11px 0", fontSize: "clamp(13px, 1.8vw, 15px)", color: C.text }}>{cost}</td>
@@ -453,7 +587,7 @@ const SECTIONS: Record<string, { title: string; headings: string[]; content: Rea
         </table>
       </div>
       <H2 id="funding-your-wallet">Funding your wallet</H2>
-      <P>Send testnet USDC to your <IC>wallet_address</IC> on Arc Testnet. Use the Arc Testnet faucet or bridge via Circle Gateway from another supported chain.</P>
+      <P>Send testnet USDC to your <IC>walletAddress</IC> on Arc Testnet. Use the Arc Testnet faucet or bridge via Circle Gateway from another supported chain.</P>
     </>),
   },
 };
@@ -599,9 +733,8 @@ export default function DocsPage() {
           border: `1px solid rgba(255,255,255,0.06)`,
           borderRadius: 14, padding: "36px 40px 72px",
         }}>
-          {/* Mobile top bar */}
           <div className="docs-mob-bar" style={{ alignItems: "center", justifyContent: "space-between", marginBottom: 28 }}>
-            <span style={{ fontSize: 14, color: C.textMuted, fontWeight: 500 }}>{group}{ '>'} {section.title}</span>
+            <span style={{ fontSize: 14, color: C.textMuted, fontWeight: 500 }}>{group} {'>'} {section.title}</span>
             <button onClick={() => setMobileNavOpen(true)} style={{ background: C.purpleFaint, border: `1px solid ${C.purpleBorder}`, borderRadius: 7, color: "rgba(167,139,250,0.9)", fontSize: 13, padding: "6px 14px", cursor: "pointer", fontFamily: "inherit", fontWeight: 600 }}>
               Menu
             </button>
@@ -613,7 +746,6 @@ export default function DocsPage() {
             <div style={{ height: 1, background: C.border, margin: "20px 0 30px" }} />
             {section.content}
 
-            {/* Pagination */}
             <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 10, marginTop: 64, paddingTop: 24, borderTop: `1px solid ${C.border}` }}>
               {prev ? (
                 <button onClick={() => go(prev.id)} style={paginationBtn}

@@ -2,7 +2,6 @@ import { initiateDeveloperControlledWalletsClient } from "@circle-fin/developer-
 import { randomUUID } from "crypto";
 import { config } from "@/config";
 import { store } from "@/state/store";
-import { registerAgentOnChain } from "./agent.registry";
 import type { AgentInfo } from "@/execution/types";
 import logger from "@/lib/logger";
 import { prisma } from "@/prisma/prisma";
@@ -37,45 +36,41 @@ export async function registerAgent(metadataUri: string): Promise<AgentInfo> {
 
   logger.info(`AgentService: wallet created address=${wallet.address}`);
 
-  const { txHash, onchainAgentId } = await registerAgentOnChain(
-    wallet.address,
-    metadataUri
-  );
+  // On-chain registration skipped for client agents.
+  // New wallets have no gas to pay for the transaction.
+  // On-chain identity is only registered for the Runix system agent
+  // via scripts/register-runix-agent.ts which is funded manually.
 
   const agentId = randomUUID();
-  const apiKey = generateApiKey();
+  const apiKey  = generateApiKey();
 
   const agent: AgentInfo = {
     agentId,
-    ...(onchainAgentId ? { onchainAgentId } : {}),
-    txHash,
-    walletId: wallet.id,
+    walletId:     wallet.id,
     walletAddress: wallet.address,
     apiKey,
     metadataUri,
-    createdAt: Date.now(),
+    createdAt:    Date.now(),
   };
 
   // persist to postgres
   await prisma.agent.create({
     data: {
-      id:             agentId,
+      id:            agentId,
       apiKey,
-      walletId:       wallet.id,
-      walletAddress:  wallet.address,
-      onchainAgentId: onchainAgentId ?? "",
-      txHash,
+      walletId:      wallet.id,
+      walletAddress: wallet.address,
+      onchainAgentId: "",
+      txHash:         "",
       metadataUri,
-      createdAt:      new Date(),
+      createdAt:     new Date(),
     },
   });
 
   // keep redis for fast api key lookup on every request
   await store.set(`apikey:${apiKey}`, agentId);
 
-  logger.info(
-    `AgentService: agent registered agentId=${agentId} onchainId=${onchainAgentId}`
-  );
+  logger.info(`AgentService: agent registered agentId=${agentId}`);
 
   return agent;
 }
