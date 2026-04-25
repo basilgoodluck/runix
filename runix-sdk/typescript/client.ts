@@ -7,7 +7,9 @@ import type {
   StatefulPayload,
   BatchPayload,
   FilePayload,
+  LlmPayload,
   ExecutionResult,
+  LlmResult,
   AgentRegistration,
   AgentBalance,
   BillingHistory,
@@ -51,7 +53,11 @@ export class RunixClient {
     return this.execute("file", payload);
   }
 
-  // ── Streaming — async generator, yields StreamChunk ─────────────────────────
+  async llm(payload: LlmPayload): Promise<LlmResult> {
+    return this.execute("llm", payload) as Promise<LlmResult>;
+  }
+
+  // ── Streaming - async generator, yields StreamChunk ──────────────────────────
 
   async *stream(payload: ComputePayload): AsyncGenerator<StreamChunk> {
     const res = await fetch(`${this.baseUrl}/api/execute/stream`, {
@@ -93,7 +99,7 @@ export class RunixClient {
     }
   }
 
-  // ── Agent registration — static, no auth needed ──────────────────────────────
+  // ── Agent registration - static, no auth needed ───────────────────────────────
 
   static async register(
     options: RegisterOptions,

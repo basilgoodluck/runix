@@ -77,6 +77,26 @@ export interface FilePayload {
   timeoutMs?: number;
 }
 
+// ADD THESE TO: sdk/typescript/src/types.ts
+
+export interface LlmPayload {
+  prompt: string;
+  systemPrompt?: string;
+  provider?: "gemini" | "openai" | "custom";
+  model?: string;
+  endpoint?: string;
+  apiKey?: string;
+  headers?: Record<string, string>;
+  retries?: number;
+  timeoutMs?: number;
+}
+
+export interface LlmResult extends ExecutionResult {
+  text: string;      // extracted LLM response - ready to use, no parsing needed
+  provider: string;
+  model: string;
+}
+
 // ── Results ───────────────────────────────────────────────────────────────────
 
 export interface JobResources {
