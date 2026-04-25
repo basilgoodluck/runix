@@ -10,7 +10,7 @@ const PROVIDERS: Record<string, (apiKey: string, model: string) => string> = {
 };
 
 const DEFAULT_MODELS: Record<string, string> = {
-  gemini: "gemini-2.0-flash",
+  gemini: "gemini-2.5-flash",
   openai: "gpt-4o-mini",
 };
 
