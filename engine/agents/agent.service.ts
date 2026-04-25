@@ -76,6 +76,7 @@ export async function registerAgent(metadataUri: string): Promise<AgentInfo> {
 }
 
 export async function getAgentByApiKey(apiKey: string): Promise<AgentInfo | null> {
+  console.log(`AgentService: looking up agent by API key ${apiKey ? "****" : "MISSING"}`);
   // redis first - fast path on every authenticated request
   const agentId = await store.get(`apikey:${apiKey}`);
   if (!agentId) return null;

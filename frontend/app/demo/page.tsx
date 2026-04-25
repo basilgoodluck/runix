@@ -82,7 +82,10 @@ export default function DemoPage() {
         signal: abort.signal,
       });
 
-      if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
+      if (!res.ok || !res.body) {
+        const errText = await res.text();
+        throw new Error(errText || `HTTP ${res.status}`);
+      }
 
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
@@ -109,8 +112,20 @@ export default function DemoPage() {
           try { parsed = JSON.parse(dataLine); } catch { continue; }
           const p = parsed as Record<string, unknown>;
 
+          // --- ERROR EVENT → ALERT, STOP, DO NOT STORE IN STATE ---
+          if (eventType === "error") {
+            const errMsg = (p.message as string) || "Unknown error";
+            alert(`❌ ${errMsg}`);
+            abort.abort();
+            setRunning(false);
+            setState(null);
+            return; // exit the loop and function
+          }
+
+          // --- Normal events: update state, but NEVER include error events ---
           setState(prev => {
             if (!prev) return prev;
+            // only add non-error events
             const next = { ...prev, events: [...prev.events, { type: eventType, data: parsed }] };
 
             if (eventType === "step") {
@@ -138,11 +153,6 @@ export default function DemoPage() {
               next.totalDuration = (p.totalDurationMs as number) ?? 0;
             }
 
-            if (eventType === "error") {
-              next.error = p.message as string;
-              next.done  = true;
-            }
-
             return next;
           });
 
@@ -151,7 +161,8 @@ export default function DemoPage() {
       }
     } catch (err: unknown) {
       if ((err as Error).name !== "AbortError") {
-        setState(prev => prev ? { ...prev, error: (err as Error).message, done: true } : prev);
+        alert(`❌ ${(err as Error).message}`);
+        setState(null);
       }
     } finally {
       setRunning(false);
@@ -167,13 +178,13 @@ export default function DemoPage() {
   );
 
   return (
-    <div style={{ minHeight: "100vh", background: "#080809", color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}>
+    <div style={{ minHeight: "100vh", background: "#0a0a0c", color: "#fff", fontFamily: "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}>
       <style>{`
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        ::-webkit-scrollbar { width: 3px; }
-        ::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.4); border-radius: 2px; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
         @keyframes fadeUp { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
-        @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
         @keyframes spin { to { transform:rotate(360deg); } }
 
         .sc-btn {
@@ -181,42 +192,41 @@ export default function DemoPage() {
           text-align: left;
           background: transparent;
           border: 1px solid rgba(255,255,255,0.12);
-          border-radius: 10px;
-          padding: 12px 16px;
+          border-radius: 8px;
+          padding: 12px 14px;
           cursor: pointer;
-          color: #fff;
           font-family: inherit;
-          transition: background 0.15s, border-color 0.15s;
+          transition: all 0.15s ease;
         }
-        .sc-btn:hover:not(:disabled) { background: rgba(255,255,255,0.08); border-color: rgba(124,58,237,0.6); }
-        .sc-btn.active { background: rgba(124,58,237,0.18); border-color: #7c3aed; box-shadow: 0 0 24px rgba(124,58,237,0.2); }
+        .sc-btn:hover:not(:disabled) { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.25); }
+        .sc-btn.active { background: rgba(124,58,237,0.12); border-color: #7c3aed; box-shadow: 0 0 0 1px rgba(124,58,237,0.2); }
         .sc-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
         .pipe-node {
-          padding: 5px 14px;
-          border-radius: 20px;
-          font-size: 12px;
-          font-weight: 600;
-          border: 1px solid rgba(255,255,255,0.2);
-          color: rgba(255,255,255,0.75);
+          padding: 6px 16px;
+          border-radius: 24px;
+          font-size: 13px;
+          font-weight: 500;
+          border: 1px solid rgba(255,255,255,0.15);
+          color: rgba(255,255,255,0.8);
           transition: all 0.2s;
           white-space: nowrap;
         }
-        .pipe-node.active { border-color: #7c3aed; color: #fff; background: rgba(124,58,237,0.25); box-shadow: 0 0 16px rgba(124,58,237,0.3); }
-        .pipe-node.done   { border-color: #10b981; color: #6ee7b7; background: rgba(16,185,129,0.12); }
+        .pipe-node.active { border-color: #7c3aed; color: #fff; background: rgba(124,58,237,0.2); }
+        .pipe-node.done   { border-color: #10b981; color: #6ee7b7; background: rgba(16,185,129,0.08); }
 
         .step-row {
           display: flex;
           align-items: flex-start;
-          gap: 14px;
-          padding: 16px 0;
-          border-bottom: 1px solid rgba(255,255,255,0.08);
+          gap: 16px;
+          padding: 18px 0;
+          border-bottom: 1px solid rgba(255,255,255,0.06);
           animation: fadeUp 0.2s ease;
         }
         .step-row:last-child { border-bottom: none; }
 
         .ev-card {
-          border-radius: 10px;
+          border-radius: 8px;
           padding: 12px 14px;
           margin-bottom: 8px;
           border: 1px solid transparent;
@@ -228,48 +238,44 @@ export default function DemoPage() {
           .sidebar { width: 100% !important; border-right: none !important; border-bottom: 1px solid rgba(255,255,255,0.08) !important; }
           .sidebar-inner { flex-direction: row !important; flex-wrap: nowrap; overflow-x: auto; padding: 12px !important; gap: 8px !important; }
           .group-head { display: none !important; }
-          .sc-btn { min-width: 130px; }
+          .sc-btn { min-width: 140px; }
           .events-col { width: 100% !important; border-left: none !important; border-top: 1px solid rgba(255,255,255,0.08) !important; max-height: 280px; }
           .pipe-row { overflow-x: auto; }
         }
       `}</style>
 
-      {/* Topbar */}
-      <div style={{ borderBottom: "1px solid rgba(255,255,255,0.1)", padding: "0 24px", height: 60, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ width: 28, height: 28, borderRadius: 7, background: "#7c3aed", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 0 1px rgba(139,92,246,0.4), 0 4px 16px rgba(124,58,237,0.45)" }}>
-            <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#fff", boxShadow: "0 0 8px rgba(255,255,255,0.9)" }} />
+      {/* Topbar – clean, no live badge */}
+      <div style={{ borderBottom: "1px solid rgba(255,255,255,0.08)", padding: "0 24px", height: 64, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ width: 32, height: 32, borderRadius: 8, background: "#7c3aed", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <span style={{ fontSize: 16, fontWeight: 700, color: "#fff" }}>R</span>
           </div>
-          <span style={{ fontWeight: 800, fontSize: 18, letterSpacing: "-0.03em", color: "#fff" }}>Runix</span>
-          <span style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", marginLeft: 2 }}>demo</span>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#34d399", animation: "pulse 2s infinite" }} />
-          <span style={{ fontSize: 12, color: "#34d399", fontWeight: 600 }}>live</span>
+          <span style={{ fontWeight: 600, fontSize: 18, letterSpacing: "-0.02em", color: "#fff" }}>Runix</span>
+          <span style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", marginLeft: 4 }}>demo</span>
         </div>
       </div>
 
       {/* Pipeline bar */}
-      <div style={{ borderBottom: "1px solid rgba(255,255,255,0.1)", padding: "12px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, minHeight: 52 }}>
+      <div style={{ borderBottom: "1px solid rgba(255,255,255,0.08)", padding: "12px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, minHeight: 56 }}>
         <div className="pipe-row" style={{ display: "flex", alignItems: "center", gap: 8, flex: 1 }}>
           {activeScenario ? pipeline.map((node, i) => (
             <div key={`${node}-${i}`} style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <div className={`pipe-node${donePipelineNodes.has(i) ? " done" : state?.activePipelineStep === i && !donePipelineNodes.has(i) ? " active" : ""}`}>
                 {node}
               </div>
-              {i < pipeline.length - 1 && <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 14 }}>→</span>}
+              {i < pipeline.length - 1 && <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 14 }}>→</span>}
             </div>
-          )) : <span style={{ fontSize: 13, color: "rgba(255,255,255,0.7)" }}>select a scenario to begin</span>}
+          )) : <span style={{ fontSize: 13, color: "rgba(255,255,255,0.7)" }}>Select a scenario</span>}
         </div>
 
         {state && (
-          <div style={{ display: "flex", alignItems: "baseline", gap: 4, flexShrink: 0 }}>
-            <span style={{ fontSize: 13, color: "rgba(255,255,255,0.7)" }}>$</span>
-            <span style={{ fontSize: 22, fontWeight: 700, color: "#c4b5fd", letterSpacing: "-0.02em", fontVariantNumeric: "tabular-nums" }}>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 6, flexShrink: 0 }}>
+            <span style={{ fontSize: 14, color: "rgba(255,255,255,0.7)" }}>$</span>
+            <span style={{ fontSize: 24, fontWeight: 600, color: "#c4b5fd", letterSpacing: "-0.02em", fontVariantNumeric: "tabular-nums" }}>
               {state.totalCost.toFixed(8)}
             </span>
             {state.done && state.totalDuration > 0 && (
-              <span style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", marginLeft: 10 }}>
+              <span style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", marginLeft: 12 }}>
                 {(state.totalDuration / 1000).toFixed(2)}s
               </span>
             )}
@@ -278,19 +284,19 @@ export default function DemoPage() {
       </div>
 
       {/* Body */}
-      <div className="layout" style={{ display: "flex", height: "calc(100vh - 112px)" }}>
+      <div className="layout" style={{ display: "flex", height: "calc(100vh - 120px)" }}>
 
         {/* Sidebar */}
-        <div className="sidebar" style={{ width: 240, borderRight: "1px solid rgba(255,255,255,0.1)", overflowY: "auto", flexShrink: 0 }}>
-          <div className="sidebar-inner" style={{ display: "flex", flexDirection: "column", gap: 4, padding: "20px 16px" }}>
+        <div className="sidebar" style={{ width: 260, borderRight: "1px solid rgba(255,255,255,0.08)", overflowY: "auto", flexShrink: 0 }}>
+          <div className="sidebar-inner" style={{ display: "flex", flexDirection: "column", gap: 6, padding: "20px 16px" }}>
             {(["code", "finance", "research"] as const).map(agent => (
               <div key={agent}>
-                <p className="group-head" style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.08em", color: "rgba(255,255,255,0.65)", textTransform: "uppercase", padding: "16px 0 8px" }}>{agent}</p>
+                <p className="group-head" style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.05em", color: "rgba(255,255,255,0.5)", textTransform: "uppercase", padding: "16px 0 10px" }}>{agent}</p>
                 <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                   {SCENARIOS.filter(s => s.agent === agent).map(s => (
                     <button key={s.id} className={`sc-btn${selected === s.id ? " active" : ""}`} onClick={() => !running && runScenario(s)} disabled={running}>
-                      <p style={{ fontSize: 13, fontWeight: 600, color: selected === s.id ? "#ddd" : "#fff", marginBottom: 2 }}>{s.label}</p>
-                      <p style={{ fontSize: 11, color: "rgba(255,255,255,0.7)" }}>{s.sub}</p>
+                      <p style={{ fontSize: 14, fontWeight: 500, color: selected === s.id ? "#fff" : "rgba(255,255,255,0.9)", marginBottom: 4 }}>{s.label}</p>
+                      <p style={{ fontSize: 12, color: "rgba(255,255,255,0.6)" }}>{s.sub}</p>
                     </button>
                   ))}
                 </div>
@@ -302,124 +308,116 @@ export default function DemoPage() {
         {/* Steps feed */}
         <div ref={feedRef} style={{ flex: 1, overflowY: "auto", padding: "24px 28px" }}>
           {!state && (
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", gap: 14 }}>
-              <div style={{ width: 48, height: 48, borderRadius: 12, border: "1px solid rgba(124,58,237,0.4)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <div style={{ width: 16, height: 16, border: "1.5px solid rgba(124,58,237,0.6)", borderRadius: "50%" }} />
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", gap: 16 }}>
+              <div style={{ width: 48, height: 48, borderRadius: 12, border: "1px solid rgba(255,255,255,0.15)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <span style={{ fontSize: 20 }}>▶</span>
               </div>
-              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.55)" }}>pick a scenario to run</p>
-            </div>
-          )}
-
-          {state?.error && (
-            <div style={{ border: "1px solid rgba(239,68,68,0.4)", borderRadius: 10, padding: "14px 18px", background: "rgba(239,68,68,0.12)", marginBottom: 16 }}>
-              <p style={{ fontSize: 13, color: "#f87171", fontWeight: 500 }}>{state.error}</p>
+              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.6)" }}>Select a scenario to run</p>
             </div>
           )}
 
           {state?.steps.map((step, i) => (
             <div key={i} className="step-row">
-              <div style={{ marginTop: 3, flexShrink: 0 }}>
+              <div style={{ marginTop: 2, flexShrink: 0 }}>
                 {step.status === "running" && (
                   <div style={{ width: 16, height: 16, border: "2px solid rgba(124,58,237,0.4)", borderTopColor: "#a78bfa", borderRadius: "50%", animation: "spin 0.7s linear infinite" }} />
                 )}
                 {(step.status === "done" || step.status === "cached") && (
-                  <div style={{ width: 16, height: 16, borderRadius: "50%", background: "rgba(16,185,129,0.15)", border: "1px solid #10b981", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#4ade80" }} />
+                  <div style={{ width: 16, height: 16, borderRadius: "50%", background: "rgba(16,185,129,0.12)", border: "1px solid #10b981", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#34d399" }} />
                   </div>
                 )}
                 {step.status === "error" && (
-                  <div style={{ width: 16, height: 16, borderRadius: "50%", background: "rgba(239,68,68,0.15)", border: "1px solid #ef4444", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <div style={{ width: 16, height: 16, borderRadius: "50%", background: "rgba(239,68,68,0.12)", border: "1px solid #ef4444", display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#f87171" }} />
                   </div>
                 )}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                  <span style={{ fontSize: 14, fontWeight: 600, color: step.status === "running" ? "#fff" : step.status === "error" ? "#f87171" : "rgba(255,255,255,0.9)" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
+                  <span style={{ fontSize: 15, fontWeight: 500, color: step.status === "running" ? "#fff" : step.status === "error" ? "#f87171" : "rgba(255,255,255,0.95)" }}>
                     {step.label}
                   </span>
                   {step.status === "cached" && (
-                    <span style={{ fontSize: 10, fontWeight: 700, color: "#93c5fd", background: "rgba(96,165,250,0.15)", border: "1px solid rgba(96,165,250,0.4)", borderRadius: 4, padding: "1px 6px" }}>cached</span>
+                    <span style={{ fontSize: 10, fontWeight: 600, color: "#93c5fd", background: "rgba(96,165,250,0.12)", border: "1px solid rgba(96,165,250,0.3)", borderRadius: 4, padding: "2px 8px" }}>cached</span>
                   )}
                 </div>
                 {step.detail && (
-                  <p style={{ fontSize: 12, color: "rgba(255,255,255,0.75)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{step.detail}</p>
+                  <p style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{step.detail}</p>
                 )}
               </div>
               <div style={{ textAlign: "right", flexShrink: 0 }}>
                 {step.durationMs != null && (
-                  <p style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", marginBottom: 2 }}>{step.durationMs}ms</p>
+                  <p style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", marginBottom: 4 }}>{step.durationMs}ms</p>
                 )}
                 {step.costUsd != null && step.costUsd > 0 && (
-                  <p style={{ fontSize: 12, color: "#c4b5fd", fontWeight: 600 }}>${step.costUsd.toFixed(8)}</p>
+                  <p style={{ fontSize: 12, color: "#c4b5fd", fontWeight: 500 }}>${step.costUsd.toFixed(8)}</p>
                 )}
               </div>
             </div>
           ))}
 
           {running && (
-            <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "16px 0", color: "rgba(255,255,255,0.7)", fontSize: 13 }}>
-              <div style={{ width: 10, height: 10, border: "1.5px solid rgba(124,58,237,0.5)", borderTopColor: "#a78bfa", borderRadius: "50%", animation: "spin 0.7s linear infinite" }} />
-              streaming
+            <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "20px 0", color: "rgba(255,255,255,0.8)", fontSize: 14 }}>
+              <div style={{ width: 12, height: 12, border: "2px solid rgba(124,58,237,0.5)", borderTopColor: "#a78bfa", borderRadius: "50%", animation: "spin 0.7s linear infinite" }} />
+              Streaming execution...
             </div>
           )}
 
           {state?.done && !state.error && (
-            <div style={{ border: "1px solid rgba(16,185,129,0.3)", borderRadius: 10, padding: "14px 18px", background: "rgba(16,185,129,0.08)", marginTop: 16 }}>
-              <p style={{ fontSize: 13, color: "#4ade80", fontWeight: 600 }}>
-                complete · ${state.totalCost.toFixed(8)} · {(state.totalDuration / 1000).toFixed(2)}s
+            <div style={{ border: "1px solid rgba(16,185,129,0.25)", borderRadius: 8, padding: "14px 18px", background: "rgba(16,185,129,0.06)", marginTop: 20 }}>
+              <p style={{ fontSize: 14, color: "#34d399", fontWeight: 500 }}>
+                Complete · ${state.totalCost.toFixed(8)} · {(state.totalDuration / 1000).toFixed(2)}s
               </p>
             </div>
           )}
         </div>
 
-        {/* Events panel */}
-        <div className="events-col" style={{ width: 300, borderLeft: "1px solid rgba(255,255,255,0.1)", overflowY: "auto", padding: "20px 16px", flexShrink: 0 }}>
-          <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", color: "rgba(255,255,255,0.7)", textTransform: "uppercase", marginBottom: 16 }}>event stream</p>
+        {/* Events panel – we now guarantee no error events are ever stored */}
+        <div className="events-col" style={{ width: 320, borderLeft: "1px solid rgba(255,255,255,0.08)", overflowY: "auto", padding: "20px 16px", flexShrink: 0 }}>
+          <p style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.05em", color: "rgba(255,255,255,0.6)", textTransform: "uppercase", marginBottom: 18 }}>Event stream</p>
 
-          {!state && <p style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>events appear here</p>}
+          {!state && <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)" }}>No events yet</p>}
 
-          {state?.events.filter(e => e.type !== "step" && e.type !== "done").map((ev, i) => {
+          {state?.events.map((ev, i) => {
             const st: Record<string, { bg: string; accent: string; border: string }> = {
-              output:    { bg: "rgba(16,185,129,0.09)",  accent: "#4ade80", border: "rgba(16,185,129,0.3)" },
-              analysis:  { bg: "rgba(124,58,237,0.12)",  accent: "#c4b5fd", border: "rgba(124,58,237,0.35)" },
-              tests:     { bg: "rgba(96,165,250,0.1)",   accent: "#93c5fd", border: "rgba(96,165,250,0.3)" },
-              sources:   { bg: "rgba(96,165,250,0.1)",   accent: "#93c5fd", border: "rgba(96,165,250,0.3)" },
-              report:    { bg: "rgba(124,58,237,0.12)",  accent: "#c4b5fd", border: "rgba(124,58,237,0.35)" },
-              questions: { bg: "rgba(167,139,250,0.1)",  accent: "#d8b4fe", border: "rgba(167,139,250,0.3)" },
-              tickers:   { bg: "rgba(16,185,129,0.09)",  accent: "#4ade80", border: "rgba(16,185,129,0.3)" },
-              depths:    { bg: "rgba(16,185,129,0.09)",  accent: "#4ade80", border: "rgba(16,185,129,0.3)" },
-              summary:   { bg: "rgba(124,58,237,0.12)",  accent: "#c4b5fd", border: "rgba(124,58,237,0.35)" },
-              result:    { bg: "rgba(251,191,36,0.09)",  accent: "#fcd34d", border: "rgba(251,191,36,0.3)" },
-              error:     { bg: "rgba(239,68,68,0.1)",    accent: "#f87171", border: "rgba(239,68,68,0.3)" },
+              output:    { bg: "rgba(16,185,129,0.08)",  accent: "#34d399", border: "rgba(16,185,129,0.2)" },
+              analysis:  { bg: "rgba(124,58,237,0.08)",  accent: "#a78bfa", border: "rgba(124,58,237,0.2)" },
+              tests:     { bg: "rgba(96,165,250,0.08)",  accent: "#93c5fd", border: "rgba(96,165,250,0.2)" },
+              sources:   { bg: "rgba(96,165,250,0.08)",  accent: "#93c5fd", border: "rgba(96,165,250,0.2)" },
+              report:    { bg: "rgba(124,58,237,0.08)",  accent: "#a78bfa", border: "rgba(124,58,237,0.2)" },
+              questions: { bg: "rgba(167,139,250,0.08)", accent: "#c4b5fd", border: "rgba(167,139,250,0.2)" },
+              tickers:   { bg: "rgba(16,185,129,0.08)",  accent: "#34d399", border: "rgba(16,185,129,0.2)" },
+              depths:    { bg: "rgba(16,185,129,0.08)",  accent: "#34d399", border: "rgba(16,185,129,0.2)" },
+              summary:   { bg: "rgba(124,58,237,0.08)",  accent: "#a78bfa", border: "rgba(124,58,237,0.2)" },
+              result:    { bg: "rgba(251,191,36,0.08)",  accent: "#fcd34d", border: "rgba(251,191,36,0.2)" },
             };
-            const c = st[ev.type] ?? { bg: "rgba(255,255,255,0.05)", accent: "#ccc", border: "rgba(255,255,255,0.12)" };
+            const c = st[ev.type] ?? { bg: "rgba(255,255,255,0.04)", accent: "#ccc", border: "rgba(255,255,255,0.1)" };
             const d = ev.data as Record<string, unknown>;
 
             return (
               <div key={i} className="ev-card" style={{ background: c.bg, borderColor: c.border }}>
-                <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: c.accent, textTransform: "uppercase", marginBottom: 6 }}>{ev.type}</p>
-                <div style={{ fontSize: 12, color: "#fff", lineHeight: 1.5 }}>
+                <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.08em", color: c.accent, textTransform: "uppercase", marginBottom: 8 }}>{ev.type}</p>
+                <div style={{ fontSize: 13, color: "#fff", lineHeight: 1.5 }}>
                   {ev.type === "output" && (
-                    <pre style={{ fontFamily: "monospace", fontSize: 11, whiteSpace: "pre-wrap", wordBreak: "break-all", color: "#a7f3d0", maxHeight: 64, overflow: "hidden" }}>
-                      {(d.stdout as string)?.slice(0, 120) || (d.stderr as string)?.slice(0, 80) || "no output"}
+                    <pre style={{ fontFamily: "monospace", fontSize: 12, whiteSpace: "pre-wrap", wordBreak: "break-all", color: "#a7f3d0", maxHeight: 70, overflow: "hidden" }}>
+                      {(d.stdout as string)?.slice(0, 140) || (d.stderr as string)?.slice(0, 100) || "no output"}
                     </pre>
                   )}
-                  {ev.type === "analysis" && <span style={{ color: c.accent }}>{d.verdict as string} · {(d.summary as string)?.slice(0, 60)}</span>}
+                  {ev.type === "analysis" && <span style={{ color: c.accent }}>{d.verdict as string} · {(d.summary as string)?.slice(0, 70)}</span>}
                   {ev.type === "tests" && <span style={{ color: c.accent }}>{d.passCount as number}/{d.total as number} passed</span>}
                   {ev.type === "sources" && <span>4 sources fetched in parallel</span>}
-                  {ev.type === "report" && <span>{(d.text as string)?.slice(0, 90)}</span>}
-                  {ev.type === "questions" && <span>{(d.questions as string[])?.length ?? 0} follow-up questions generated</span>}
-                  {ev.type === "tickers" && <span>market data fetched</span>}
-                  {ev.type === "depths" && <span>order books analyzed</span>}
-                  {ev.type === "summary" && <span>{(d.text as string)?.slice(0, 80)}</span>}
+                  {ev.type === "report" && <span>{(d.text as string)?.slice(0, 100)}</span>}
+                  {ev.type === "questions" && <span>{(d.questions as string[])?.length ?? 0} follow‑up questions</span>}
+                  {ev.type === "tickers" && <span>Market data fetched</span>}
+                  {ev.type === "depths" && <span>Order books analyzed</span>}
+                  {ev.type === "summary" && <span>{(d.text as string)?.slice(0, 90)}</span>}
                   {ev.type === "result" && (
                     <span style={{ color: c.accent }}>
                       {d.totalCostUsd != null ? `$${(d.totalCostUsd as number).toFixed(8)}` : "complete"}
                       {d.receipt ? " · receipted" : ""}
                     </span>
                   )}
-                  {ev.type === "error" && <span style={{ color: c.accent }}>{d.message as string}</span>}
                 </div>
               </div>
             );
