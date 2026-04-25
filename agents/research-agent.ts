@@ -15,6 +15,8 @@
 
 import { RunixClient, type HttpMethod } from "@basilgoodluck/runix-sdk";
 import type { Request, Response } from "express";
+import dotenv from "dotenv";
+dotenv.config();
 
 const runix = new RunixClient({ apiKey: process.env.RUNIX_RESEARCH_API_KEY! });
 
