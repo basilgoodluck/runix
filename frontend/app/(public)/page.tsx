@@ -56,6 +56,9 @@ export default function HomePage() {
         .btn-ghost { display: inline-flex; align-items: center; padding: 12px 24px; border-radius: 7px; text-decoration: none; border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.7); font-weight: 500; font-size: 15px; letter-spacing: -0.01em; transition: border-color 0.2s, color 0.2s, transform 0.15s; white-space: nowrap; }
         .btn-ghost:hover { border-color: rgba(139,92,246,0.6); color: rgba(139,92,246,0.9); transform: translateY(-1px); }
 
+        .btn-purple { display: inline-flex; align-items: center; padding: 12px 24px; border-radius: 7px; text-decoration: none; background: rgba(139,92,246,0.15); border: 1px solid rgba(139,92,246,0.35); color: rgba(139,92,246,0.9); font-weight: 600; font-size: 15px; letter-spacing: -0.01em; transition: background 0.2s, border-color 0.2s, transform 0.15s; white-space: nowrap; }
+        .btn-purple:hover { background: rgba(139,92,246,0.25); border-color: rgba(139,92,246,0.6); transform: translateY(-1px); }
+
         .sec { padding: 60px 20px; max-width: 1280px; margin: 0 auto; }
         .sec-divider { border-top: 1px solid rgba(255,255,255,0.05); }
         .sec-alt { background: #0b0b0d; }
@@ -79,58 +82,18 @@ export default function HomePage() {
 
         .noise-overlay { position: fixed; inset: 0; pointer-events: none; z-index: 100; opacity: 0.02; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); background-size: 200px; }
 
-        .usecase-grid {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 28px;
-        }
-        .usecase-card {
-          background: #0f0f11;
-          border: 1px solid rgba(255,255,255,0.06);
-          border-radius: 20px;
-          padding: 28px 24px;
-          transition: all 0.3s ease;
-        }
-        .usecase-card:hover {
-          border-color: rgba(139,92,246,0.4);
-          transform: translateY(-3px);
-          background: #111114;
-        }
-        .usecase-badge {
-          font-size: 13px;
-          font-weight: 600;
-          letter-spacing: 0.04em;
-          color: rgba(139,92,246,0.8);
-          margin-bottom: 16px;
-          display: inline-block;
-          padding: 4px 12px;
-          border-radius: 40px;
-          background: rgba(139,92,246,0.12);
-          border: 1px solid rgba(139,92,246,0.2);
-        }
-        .usecase-title {
-          font-size: clamp(1.2rem, 3vw, 1.5rem);
-          font-weight: 700;
-          letter-spacing: -0.02em;
-          margin-bottom: 16px;
-          line-height: 1.3;
-          color: rgba(255,255,255,0.92);
-        }
-        .usecase-desc {
-          font-size: clamp(14px, 1.8vw, 16px);
-          line-height: 1.7;
-          color: rgba(255,255,255,0.7);
-          font-weight: 300;
-        }
+        .sdk-banner { background: rgba(139,92,246,0.07); border: 1px solid rgba(139,92,246,0.18); border-radius: 10px; padding: 14px 20px; display: inline-flex; align-items: center; gap: 12px; margin-bottom: 36px; }
+        .sdk-pill { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; background: rgba(139,92,246,0.2); color: rgba(139,92,246,0.9); border: 1px solid rgba(139,92,246,0.3); border-radius: 4px; padding: 3px 8px; }
+
+        .usecase-grid { display: grid; grid-template-columns: 1fr; gap: 28px; }
+        .usecase-card { background: #0f0f11; border: 1px solid rgba(255,255,255,0.06); border-radius: 20px; padding: 28px 24px; transition: all 0.3s ease; }
+        .usecase-card:hover { border-color: rgba(139,92,246,0.4); transform: translateY(-3px); background: #111114; }
+        .usecase-badge { font-size: 13px; font-weight: 600; letter-spacing: 0.04em; color: rgba(139,92,246,0.8); margin-bottom: 16px; display: inline-block; padding: 4px 12px; border-radius: 40px; background: rgba(139,92,246,0.12); border: 1px solid rgba(139,92,246,0.2); }
+        .usecase-title { font-size: clamp(1.2rem, 3vw, 1.5rem); font-weight: 700; letter-spacing: -0.02em; margin-bottom: 16px; line-height: 1.3; color: rgba(255,255,255,0.92); }
+        .usecase-desc { font-size: clamp(14px, 1.8vw, 16px); line-height: 1.7; color: rgba(255,255,255,0.7); font-weight: 300; }
 
         @media (min-width: 640px) {
           .usecase-grid { grid-template-columns: repeat(2, 1fr); gap: 32px; }
-        }
-        @media (min-width: 1024px) {
-          .usecase-grid { grid-template-columns: repeat(3, 1fr); }
-        }
-
-        @media (min-width: 640px) {
           .sec { padding: 100px 32px; }
           .cap-row { grid-template-columns: 1fr 1fr; gap: 0; }
           .step-grid { grid-template-columns: 1fr 1fr !important; }
@@ -139,12 +102,11 @@ export default function HomePage() {
           .sec-header { flex-direction: row !important; align-items: flex-end !important; }
           .sec-header p { text-align: right !important; }
         }
-
         @media (min-width: 1024px) {
+          .usecase-grid { grid-template-columns: repeat(3, 1fr); }
           .sec { padding: 110px 48px; }
           .problem-grid { grid-template-columns: 360px 1fr !important; }
         }
-
         @media (max-width: 639px) {
           .step-card { padding: 20px; }
           .code-block { padding: 16px; font-size: 11px; }
@@ -154,34 +116,22 @@ export default function HomePage() {
       <div className="noise-overlay" />
 
       {/* ── HERO ── */}
-      <section style={{
-        padding: "90px 20px 60px",
-        minHeight: "100vh",
-        maxWidth: 1280,
-        margin: "0 auto",
-        position: "relative",
-      }}>
-        <style>{`
-          @media (min-width: 640px) {
-            .hero-section { padding: 110px 32px 80px !important; }
-          }
-        `}</style>
-        <div className="hero-section" style={{
-          padding: "90px 20px 60px",
-          minHeight: "100vh",
-          maxWidth: 1280,
-          margin: "0 auto",
-          position: "relative",
-        }}>
-          <div style={{
-            position: "absolute", inset: 0,
-            backgroundImage: "linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px)",
-            backgroundSize: "72px 72px",
-            maskImage: "radial-gradient(ellipse 80% 60% at 50% 0%, black 30%, transparent 100%)",
-            pointerEvents: "none"
-          }} />
+      <section style={{ padding: "90px 20px 60px", minHeight: "100vh", maxWidth: 1280, margin: "0 auto", position: "relative" }}>
+        <style>{`@media (min-width: 640px) { .hero-section { padding: 110px 32px 80px !important; } }`}</style>
+        <div className="hero-section" style={{ padding: "90px 20px 60px", minHeight: "100vh", maxWidth: 1280, margin: "0 auto", position: "relative" }}>
+          <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px)", backgroundSize: "72px 72px", maskImage: "radial-gradient(ellipse 80% 60% at 50% 0%, black 30%, transparent 100%)", pointerEvents: "none" }} />
 
           <FadeUp delay={0}>
+            {/* SDK banner */}
+            <div className="sdk-banner">
+              <span className="sdk-pill">SDK</span>
+              <span style={{ fontSize: 13.5, color: "rgba(255,255,255,0.6)", fontFamily: "'DM Mono', monospace" }}>
+                npm install @basilgoodluck/runix-sdk
+              </span>
+            </div>
+          </FadeUp>
+
+          <FadeUp delay={60}>
             <h1 style={{ fontSize: "clamp(3rem, 11vw, 8.5rem)", fontWeight: 800, lineHeight: 0.9, letterSpacing: "-0.045em", marginBottom: 36 }}>
               Run code.<br />
               <span style={{ color: "rgba(255,255,255,0.16)" }}>Trigger actions.</span><br />
@@ -189,30 +139,28 @@ export default function HomePage() {
             </h1>
           </FadeUp>
 
-          <FadeUp delay={100}>
-            <div className="hero-grid" style={{ display: "grid", gridTemplateColumns: "1fr", gap: "20px 60px", maxWidth: 860, marginBottom: 44 }}>
+          <FadeUp delay={130}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "20px 60px", maxWidth: 860, marginBottom: 44 }}>
               <p style={{ fontSize: "clamp(15px, 2.5vw, 18px)", lineHeight: 1.75, color: "rgba(255,255,255,0.72)", fontWeight: 300 }}>
-                A unified execution layer for autonomous agents and software systems. Pay per execution — no subscriptions, no infrastructure to own.
-              </p>
-              <p style={{ fontSize: "clamp(15px, 2.5vw, 18px)", lineHeight: 1.75, color: "rgba(255,255,255,0.72)", fontWeight: 300 }}>
-                One API call in. One structured result out. Retried, sandboxed, and settled automatically.
+                A TypeScript SDK and execution engine for autonomous agents. Install the SDK, register your agent, and pay per execution in USDC — no subscriptions, no infrastructure to own.
               </p>
             </div>
           </FadeUp>
 
-          <FadeUp delay={180}>
+          <FadeUp delay={200}>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <a href="/auth" className="btn-primary">Generate API Key</a>
+              <a href="/docs" className="btn-primary">Read the Docs</a>
+              <a href="/demo" className="btn-purple">Live Demo</a>
               <a href="#how" className="btn-ghost">See how it works</a>
             </div>
           </FadeUp>
 
-          <FadeUp delay={260} style={{ marginTop: 72 }}>
+          <FadeUp delay={270} style={{ marginTop: 72 }}>
             <div className="stats-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px 24px", borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: 44 }}>
               {[
                 { val: "<42ms", label: "Average latency" },
-                { val: "$0.003", label: "Per execution at scale" },
-                { val: "4 types", label: "One unified API" },
+                { val: "$0.000003", label: "Per compute execution" },
+                { val: "7 job types", label: "One unified SDK" },
                 { val: "Zero", label: "Infrastructure overhead" },
               ].map(({ val, label }) => (
                 <div key={label}>
@@ -223,35 +171,19 @@ export default function HomePage() {
             </div>
           </FadeUp>
 
-          {/* ── WALLET LINK SECTION ── */}
-          <FadeUp delay={320} style={{ marginTop: 48 }}>
-            <div style={{ 
-              padding: "20px 24px", 
-              background: "rgba(139,92,246,0.08)", 
-              border: "1px solid rgba(139,92,246,0.2)", 
-              borderRadius: 12,
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              flexWrap: "wrap",
-              gap: 16
-            }}>
+          {/* Arc explorer link */}
+          <FadeUp delay={330} style={{ marginTop: 48 }}>
+            <div style={{ padding: "20px 24px", background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.2)", borderRadius: 12, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
               <div>
                 <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginBottom: 6, letterSpacing: "0.03em", textTransform: "uppercase" }}>
-                  View your transaction history
+                  Live on-chain transactions — Arc Testnet
                 </div>
                 <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 13, color: "rgba(139,92,246,0.9)" }}>
                   {WALLET_ADDRESS.slice(0, 6)}...{WALLET_ADDRESS.slice(-4)}
                 </div>
               </div>
-              <a 
-                href={ARC_SCAN_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn-ghost"
-                style={{ padding: "8px 20px", fontSize: 13 }}
-              >
-                View on ARC Testnet →
+              <a href={ARC_SCAN_URL} target="_blank" rel="noopener noreferrer" className="btn-ghost" style={{ padding: "8px 20px", fontSize: 13 }}>
+                View on ArcScan →
               </a>
             </div>
           </FadeUp>
@@ -305,7 +237,7 @@ export default function HomePage() {
           <FadeUp>
             <div className="sec-header" style={{ display: "flex", flexDirection: "column", gap: 16, marginBottom: 56 }}>
               <h2 style={{ fontSize: "clamp(1.7rem, 4vw, 2.6rem)", fontWeight: 800, letterSpacing: "-0.035em" }}>What Runix executes</h2>
-              <p style={{ fontSize: "clamp(14px, 2vw, 16px)", color: "rgba(255,255,255,0.55)", maxWidth: 300, lineHeight: 1.6 }}>Four execution types. One API. No configuration.</p>
+              <p style={{ fontSize: "clamp(14px, 2vw, 16px)", color: "rgba(255,255,255,0.55)", maxWidth: 300, lineHeight: 1.6 }}>Seven job types. One SDK. No configuration.</p>
             </div>
           </FadeUp>
           {CAPABILITIES.map((cap, i) => (
@@ -327,9 +259,9 @@ export default function HomePage() {
         <div className="step-grid" style={{ display: "grid", gridTemplateColumns: "1fr", gap: 24, alignItems: "start" }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             {[
-              { n: "01", title: "Send an execution request", body: "Your system makes a single API call describing what to run. No setup, no infrastructure to configure first." },
-              { n: "02", title: "Runix routes and isolates", body: "The request is matched to the right engine, sandboxed, and run in isolation. Multiple concurrent jobs handled automatically." },
-              { n: "03", title: "Results return, cost settles", body: "You receive a structured response with output, status, duration, and execution ID. Payment settles in the same moment." },
+              { n: "01", title: "Install the SDK and register", body: "npm install @basilgoodluck/runix-sdk. Call RunixClient.register() — you get an API key and a Circle USDC wallet on Arc. Save your API key, it's shown once." },
+              { n: "02", title: "Fund your wallet and submit a job", body: "Deposit testnet USDC to your wallet address. Call runix.compute(), runix.action(), runix.data(), or any other job type. Runix sandboxes and runs it." },
+              { n: "03", title: "Get a signed result, cost settles", body: "You receive stdout, status, durationMs, costUsd, and an Ed25519 signed receipt. USDC is deducted from your wallet automatically." },
             ].map(({ n, title, body }, i) => (
               <FadeUp key={n} delay={i * 90}>
                 <div className="step-card">
@@ -349,20 +281,25 @@ export default function HomePage() {
               <div style={{ marginBottom: 18, paddingBottom: 14, borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", gap: 6 }}>
                 {["#ff5f57", "#febc2e", "#28c840"].map(c => <div key={c} style={{ width: 10, height: 10, borderRadius: "50%", background: c }} />)}
               </div>
-              <div className="code-comment">{"// Single execution request"}</div>
+              <div className="code-comment">{"// 1. Install"}</div>
+              <div><span className="code-comment">{"// npm install @basilgoodluck/runix-sdk"}</span></div>
               <br />
-              <div><span className="code-key">const</span> result = <span className="code-key">await</span> runix.<span style={{ color: "rgba(96,165,250,0.85)" }}>execute</span>{"({"}</div>
+              <div className="code-comment">{"// 2. Register your agent (once)"}</div>
+              <div><span className="code-key">const</span> agent = <span className="code-key">await</span> RunixClient.<span style={{ color: "rgba(96,165,250,0.85)" }}>register</span>{"({"}</div>
+              <div style={{ paddingLeft: 20 }}><span className="code-key">metadataUri</span>: <span className="code-str">"https://your-uri.com/agent.json"</span>,</div>
+              <div>{"});"}</div>
+              <br />
+              <div className="code-comment">{"// 3. Submit a job"}</div>
+              <div><span className="code-key">const</span> result = <span className="code-key">await</span> runix.<span style={{ color: "rgba(96,165,250,0.85)" }}>compute</span>{"({"}</div>
               <div style={{ paddingLeft: 20 }}>
-                <div><span className="code-key">type</span>: <span className="code-str">"compute"</span>,</div>
-                <div><span className="code-key">runtime</span>: <span className="code-str">"python3.12"</span>,</div>
-                <div><span className="code-key">timeout_ms</span>: <span className="code-num">5000</span>,</div>
+                <div><span className="code-key">runtime</span>: <span className="code-str">"node"</span>,</div>
+                <div><span className="code-key">code</span>: <span className="code-str">"console.log(21 * 2)"</span>,</div>
               </div>
               <div>{"});"}</div>
               <br />
-              <div className="code-comment">{"// result is immediately available"}</div>
-              <div><span className="code-key">console</span>.log(result.<span style={{ color: "rgba(96,165,250,0.85)" }}>output</span>);     <span className="code-comment">{"// { ... }"}</span></div>
-              <div><span className="code-key">console</span>.log(result.<span style={{ color: "rgba(96,165,250,0.85)" }}>duration_ms</span>);  <span className="code-comment">{"// 38"}</span></div>
-              <div><span className="code-key">console</span>.log(result.<span style={{ color: "rgba(96,165,250,0.85)" }}>cost_usd</span>);     <span className="code-comment">{"// 0.00003"}</span></div>
+              <div><span className="code-key">console</span>.log(result.<span style={{ color: "rgba(96,165,250,0.85)" }}>stdout</span>);    <span className="code-comment">{"// 42"}</span></div>
+              <div><span className="code-key">console</span>.log(result.<span style={{ color: "rgba(96,165,250,0.85)" }}>costUsd</span>);   <span className="code-comment">{"// 0.000003"}</span></div>
+              <div><span className="code-key">console</span>.log(result.<span style={{ color: "rgba(96,165,250,0.85)" }}>receipt</span>);   <span className="code-comment">{"// Ed25519 signed"}</span></div>
             </div>
           </FadeUp>
         </div>
@@ -374,19 +311,17 @@ export default function HomePage() {
           <FadeUp>
             <div className="sec-header" style={{ display: "flex", flexDirection: "column", gap: 16, marginBottom: 56 }}>
               <h2 style={{ fontSize: "clamp(1.7rem, 4vw, 2.6rem)", fontWeight: 800, letterSpacing: "-0.035em" }}>Built for systems that never stop</h2>
-              <p style={{ fontSize: "clamp(14px, 2vw, 16px)", color: "rgba(255,255,255,0.7)", maxWidth: 300, lineHeight: 1.5 }}>
-                The highest‑demand workloads, least served by conventional platforms.
-              </p>
+              <p style={{ fontSize: "clamp(14px, 2vw, 16px)", color: "rgba(255,255,255,0.7)", maxWidth: 300, lineHeight: 1.5 }}>The highest-demand workloads, least served by conventional platforms.</p>
             </div>
           </FadeUp>
           <div className="usecase-grid">
             {[
               { industry: "Financial Services", title: "Real-time risk computation per market event", body: "Algorithmic trading systems need computation on every signal. Runix lets risk models execute per event, paying only for each computation." },
-              { industry: "AI Agents", title: "Autonomous agents that pay per action", body: "AI agents call compute, APIs, and data as part of their decision loop. Each action is independently executed, sandboxed, and settled." },
+              { industry: "AI Agents", title: "Autonomous agents that pay per action", body: "AI agents call compute, APIs, and data as part of their decision loop. Each action is independently executed, sandboxed, and settled in USDC." },
               { industry: "Developer Tooling", title: "Code analysis that scales with activity", body: "CI/CD tools have bursty, unpredictable workloads. Execute analysis jobs only when triggered — no idle infrastructure to pay for." },
               { industry: "Data Platforms", title: "Per-query billing that mirrors actual value", body: "Data products that charge per query can now execute and settle payment in one step. Cost aligns exactly with consumption." },
-              { industry: "Edge Computing", title: "Low‑latency inference at the edge", body: "Run models and processing near your users. Each execution is sandboxed and billed per request – no cold starts or idle servers." },
-              { industry: "Web3 & DeFi", title: "On‑chain compute without nodes", body: "Execute off‑chain logic that feeds into smart contracts. Pay only for each verification or data fetch, not for maintaining nodes." },
+              { industry: "Edge Computing", title: "Low-latency inference at the edge", body: "Run models and processing near your users. Each execution is sandboxed and billed per request — no cold starts or idle servers." },
+              { industry: "Web3 & DeFi", title: "On-chain compute without nodes", body: "Execute off-chain logic that feeds into smart contracts. Pay only for each verification or data fetch, not for maintaining nodes." },
             ].map((item, i) => (
               <FadeUp key={item.industry} delay={i * 50}>
                 <div className="usecase-card">
@@ -411,11 +346,11 @@ export default function HomePage() {
         <div className="why-grid" style={{ display: "grid", gridTemplateColumns: "1fr", gap: "0 64px" }}>
           {[
             { title: "Per-execution pricing", desc: "Cost is determined by what ran, not what you reserved. No minimums, no idle waste." },
-            { title: "Synchronous results", desc: "Call Runix, get a result. No polling, no callbacks, no async state to manage." },
-            { title: "Machine-native design", desc: "API surface designed around agent access patterns, not human dashboards." },
-            { title: "Parallel by default", desc: "Submit concurrent jobs. Runix handles queuing and isolation automatically." },
-            { title: "Zero infrastructure surface", desc: "No servers to configure, no containers to build. Ship integrations, not infrastructure." },
-            { title: "Audit-ready output", desc: "Every execution returns an ID, status, duration, and output. No logging layer needed." },
+            { title: "Cryptographic receipts", desc: "Every result includes an Ed25519 signed receipt with SHA-256 hashed inputs and outputs. Tamper-evident by default." },
+            { title: "Machine-native design", desc: "SDK surface designed around agent access patterns. Install, register, run — nothing else." },
+            { title: "Parallel by default", desc: "Submit concurrent jobs with runix.batch(). Runix handles queuing and isolation automatically." },
+            { title: "On-chain identity", desc: "Every agent gets an ERC-8004 on-chain identity on Arc. Reputation updates with each job." },
+            { title: "USDC settlement on Arc", desc: "Payments settle in USDC on Arc Testnet via Circle SDK. Sub-second finality, no gas overhead." },
           ].map(({ title, desc }, i) => (
             <FadeUp key={title} delay={i * 55}>
               <div className="why-item">
@@ -436,15 +371,16 @@ export default function HomePage() {
           <FadeUp>
             <div style={{ maxWidth: 720 }}>
               <h2 style={{ fontSize: "clamp(2.6rem, 9vw, 6rem)", fontWeight: 800, letterSpacing: "-0.045em", lineHeight: 0.9, marginBottom: 32 }}>
-                First request<br />
+                First job<br />
                 <span style={{ color: "rgba(255,255,255,0.14)" }}>in 2 minutes.</span>
               </h2>
-              <p style={{ fontSize: "clamp(15px, 2.5vw, 18px)", lineHeight: 1.75, maxWidth: 440, marginBottom: 40, color: "rgba(255,255,255,0.7)", fontWeight: 300 }}>
-                Generate an API key and send your first execution. No card required, no setup calls, no infrastructure to provision.
+              <p style={{ fontSize: "clamp(15px, 2.5vw, 18px)", lineHeight: 1.75, maxWidth: 480, marginBottom: 40, color: "rgba(255,255,255,0.7)", fontWeight: 300 }}>
+                Install the SDK, call <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 15, color: "rgba(139,92,246,0.85)" }}>RunixClient.register()</span>, fund your wallet with testnet USDC, and submit your first job. Everything else is automatic.
               </p>
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                <a href="/auth" className="btn-primary">Generate API Key</a>
-                <a href="/docs" className="btn-ghost">Read the Docs</a>
+                <a href="/docs" className="btn-primary">Read the Docs</a>
+                <a href="/demo" className="btn-purple">Try the Demo</a>
+                <a href="https://github.com/basilgoodluck/runix" target="_blank" rel="noopener noreferrer" className="btn-ghost">GitHub</a>
               </div>
             </div>
           </FadeUp>
